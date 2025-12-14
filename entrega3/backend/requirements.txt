@@ -1,0 +1,8 @@
+numpy<2.0.0 # senao crasha td lol
+requests
+sentence-transformers
+fastapi
+uvicorn
+torch==2.2.0
+transformers==4.37.2
+sentence-transformers==2.5.1

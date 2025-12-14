@@ -8,49 +8,6 @@ services:
       - "8983:8983"
     command: solr-precreate drugs
 
-  solr-setup:
-    build:
-      context: .
-      dockerfile: Dockerfile.python
-    container_name: solr_setup_run
-    depends_on:
-      - solr
-    volumes:
-      - ./:/app
-      # Map the huggingface cache so you only download the model ONCE for both containers
-      - ./hf_cache:/root/.cache/huggingface 
-    command: ["/bin/bash", "setup.sh"]
-    # 👇 THIS IS THE MAGIC PART FOR GPU 👇
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
-
-  solr-api:
-    build:
-      context: .
-      dockerfile: Dockerfile.python
-    container_name: solr_api
-    environment:
-      - SOLR_URL=http://solr:8983/solr
-    volumes:
-      - ./backend:/app
-      # Map the same cache here!
-      - ./hf_cache:/root/.cache/huggingface
-    ports:
-      - "8000:8000"
-    command: uvicorn api:app --host 0.0.0.0 --port 8000 --reload
-    # 👇 YOU NEED GPU HERE TOO (for query embedding) 👇
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
 
   frontend:
     build: ./frontend

@@ -16,17 +16,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+import os
+
 # --- CONFIGURATION ---
-SOLR_URL = "http://solr:8983/solr"
+SOLR_URL = os.getenv("SOLR_URL", "http://localhost:8983/solr")
 COLLECTION = "drugs" 
 VECTOR_FIELD = "vector"
 BM25_FIELD = "text_bm25"
 RRF_K = 20
 ALPHA = 0.5 # 50/50 Split
 
-print("⏳ Loading PubMedBERT model...")
+# --- DEVICE CONFIGURATION ---
+device = 'cpu'
+if torch.cuda.is_available():
+    device = 'cuda'
+elif torch.backends.mps.is_available():
+    device = 'mps'
+
+print(f"⏳ Loading PubMedBERT model on {device.upper()}...")
 # Updated to the model used in your evaluation script
-model = SentenceTransformer('NeuML/pubmedbert-base-embeddings')
+model = SentenceTransformer('NeuML/pubmedbert-base-embeddings', device=device)
 print("✅ Model loaded.")
 
 ID_PATTERN = re.compile(r"^[a-zA-Z0-9-]+$")

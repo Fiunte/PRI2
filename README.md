@@ -1,41 +1,70 @@
-# Solr Docker Compose Setup
+# Drug Search Engine (Native Backend)
 
-This setup uses Docker Compose to automatically launch a standalone Solr instance, create the `drugs` core, apply the schema, and load initial data.
+This project uses a Hybrid Search approach (Vector Search + Keyword Search) with Solr and a Python FastAPI backend.
+The backend is configured to run **natively** on your machine (supporting Mac MPS/CPU) while Solr and the Frontend run in Docker.
 
 ## Prerequisites
 
-1. **Docker & Docker Compose:** Must be installed and running.
+1. **Docker & Docker Compose**: For Solr and Frontend.
+2. **Python 3.9+**: For the backend and embedding generation.
+3. **Data Files**: Ensure `data.json` is present (and not a Git LFS pointer).
 
-2. **Required Files:**
+## 🚀 Quick Start (Automated)
 
-   * `docker-compose.yml`
+We have provided a script to automate the entire startup process:
 
-   * `fields.json`
+```bash
+cd entrega3
+chmod +x run_native.sh
+./run_native.sh
+```
 
-   * `data.json`
+This script will:
+1. Start Solr and Frontend containers.
+2. Install Python dependencies (if missing).
+3. Run `setup.sh` to generate embeddings and index data.
+4. Start the Python Backend API.
 
-## **Important!: Data File Check**
+---
 
-Your `data.json` file is very large and tracked by Git LFS. **The setup will fail if the file is an LFS pointer.**
+## 🛠 Manual Setup
 
-* **Action:** Ensure `data.json` contains the full JSON data, not the pointer text (`version https://git-lfs...`).
+If you prefer to run step-by-step:
 
-* If you have Git LFS installed, run `git lfs pull` before starting.
+### 1. Start Infrastructure
+```bash
+cd entrega3
+docker-compose up -d
+```
+*Wait for Solr to be ready (approx 10-20s).*
 
-## Quick Start
+### 2. Install Dependencies
+```bash
+pip install -r requirements.txt
+pip install -r backend/requirements.txt
+```
 
-1. To launch and set up Solr:
+### 3. Index Data
+This generates embeddings (using your local GPU/CPU) and sends them to Solr.
+```bash
+./setup.sh
+```
 
-  ```docker compose up```
+### 4. Run Backend
+```bash
+cd backend
+uvicorn api:app --host 0.0.0.0 --port 8000 --reload
+```
 
-(The setup container will automatically exit once data loading is complete.)
+## 🌐 Access Points
 
-2. Access Solr Admin UI:
+- **Frontend**: [http://localhost:3000](http://localhost:3000)
+- **Backend API**: [http://localhost:8000](http://localhost:8000)
+- **API File**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- **Solr Admin**: [http://localhost:8983/solr](http://localhost:8983/solr)
 
-  `http://localhost:8983/solr`
-
-## Cleanup
-
-To stop and remove all containers, networks, and the indexed Solr data (recommended for clean restarts):
-
-  ```docker compose down -v```
+## Cleaning Up
+To stop Docker containers:
+```bash
+docker-compose down
+```

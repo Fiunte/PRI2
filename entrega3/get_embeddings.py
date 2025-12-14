@@ -36,13 +36,19 @@ def construct_input_text(doc):
 # --- MAIN LOGIC ---
 if __name__ == "__main__":
     # 0. GPU CHECK (Crucial!)
-    if not torch.cuda.is_available():
-        print("❌ CRITICAL ERROR: PyTorch cannot find your GPU!")
-        print("   1. Did you install the CPU-only version? (Reinstall standard 'torch')")
-        print("   2. Did you forget '--gpus all' in your docker run command?")
-        sys.exit(1)
+    # 0. Device Configuration
+    device = 'cpu'
+    if torch.cuda.is_available():
+        device = 'cuda'
+        print(f"✅ GPU Detected: {torch.cuda.get_device_name(0)}")
+    elif torch.backends.mps.is_available():
+        device = 'mps'
+        print("✅ Apple MPS (Metal Performance Shaders) Detected")
+    else:
+        print("⚠️ No GPU detected. Using CPU (this will be slower).")
 
-    print(f"✅ GPU Detected: {torch.cuda.get_device_name(0)}")
+
+
     
     # 1. Check if work is already done
     if os.path.exists(OUTPUT_FILE) and os.path.getsize(OUTPUT_FILE) > 0:
@@ -61,8 +67,8 @@ if __name__ == "__main__":
     if isinstance(data, dict): data = [data]
 
     # 3. Load Model (Force CUDA)
-    print(f"   Loading {MODEL_NAME} to VRAM...")
-    model = SentenceTransformer(MODEL_NAME, device='cuda')
+    print(f"   Loading {MODEL_NAME} to {device}...")
+    model = SentenceTransformer(MODEL_NAME, device=device)
 
     # 4. Prepare Text
     print(f"   Pre-processing {len(data)} documents...")
@@ -82,7 +88,7 @@ if __name__ == "__main__":
         batch_size=BATCH_SIZE, 
         show_progress_bar=True, 
         convert_to_tensor=False,
-        device='cuda'
+        device=device
     )
 
     # 6. Save

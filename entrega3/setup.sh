@@ -1,6 +1,6 @@
 #!/bin/sh
 
-SOLR_URL="http://solr:8983/solr"
+SOLR_URL="http://localhost:8983/solr"
 COLLECTION_NAME="drugs"
 
 echo "--- Waiting for Solr core '$COLLECTION_NAME' to be ready..."
