@@ -1,0 +1,167 @@
+{
+  "config": {
+    "top_k": 20,
+    "p_at_k": 5,
+    "num_queries": 3,
+    "judgment_method": "UNIFIED",
+    "comparison": "VECTOR_MODELS_ONLY"
+  },
+  "queries": [
+    "flu remedy",
+    "hypertension medication",
+    "pain killer safe for liver"
+  ],
+  "results_summary": [
+    {
+      "vtype": "sbert",
+      "q_idx": 0,
+      "docs_count": 20
+    },
+    {
+      "vtype": "sbert",
+      "q_idx": 1,
+      "docs_count": 20
+    },
+    {
+      "vtype": "sbert",
+      "q_idx": 2,
+      "docs_count": 20
+    },
+    {
+      "vtype": "biobert",
+      "q_idx": 0,
+      "docs_count": 20
+    },
+    {
+      "vtype": "biobert",
+      "q_idx": 1,
+      "docs_count": 20
+    },
+    {
+      "vtype": "biobert",
+      "q_idx": 2,
+      "docs_count": 20
+    },
+    {
+      "vtype": "use",
+      "q_idx": 0,
+      "docs_count": 20
+    },
+    {
+      "vtype": "use",
+      "q_idx": 2,
+      "docs_count": 20
+    },
+    {
+      "vtype": "use",
+      "q_idx": 1,
+      "docs_count": 20
+    }
+  ],
+  "unified_qrels": {
+    "1": {
+      "489727cb-429e-4f04-a973-ae4dc7898519": 1,
+      "2becfaea-c7d6-ec34-e063-6294a90af5b3": 1,
+      "2c2941f2-b8cb-a99a-e063-6294a90ab626": 1
+    },
+    "2": {
+      "7d3e2e18-1dee-4000-e053-2a91aa0aeefe": 1,
+      "2bc81112-204d-2514-e063-6394a90a80ed": 1,
+      "2611d7e2-4446-b6b6-e063-6394a90a6232": 1
+    },
+    "0": {
+      "845c25af-b40b-44c9-9340-f115e7e768d4": 1,
+      "1925efad-9c72-4829-e063-6294a90ab28d": 1,
+      "afd51295-fcd3-4c07-b95c-cc0e169b761f": 1
+    }
+  },
+  "metrics": [
+    {
+      "algo": "Vector-Search",
+      "vtype": "sbert",
+      "query_idx": 0,
+      "p_at_5": 0.6,
+      "ap": 1.0
+    },
+    {
+      "algo": "Vector-Search",
+      "vtype": "sbert",
+      "query_idx": 1,
+      "p_at_5": 0.6,
+      "ap": 1.0
+    },
+    {
+      "algo": "Vector-Search",
+      "vtype": "sbert",
+      "query_idx": 2,
+      "p_at_5": 0.6,
+      "ap": 1.0
+    },
+    {
+      "algo": "Vector-Search",
+      "vtype": "biobert",
+      "query_idx": 0,
+      "p_at_5": 0.0,
+      "ap": 0.0
+    },
+    {
+      "algo": "Vector-Search",
+      "vtype": "biobert",
+      "query_idx": 1,
+      "p_at_5": 0.0,
+      "ap": 0.0
+    },
+    {
+      "algo": "Vector-Search",
+      "vtype": "biobert",
+      "query_idx": 2,
+      "p_at_5": 0.0,
+      "ap": 0.0
+    },
+    {
+      "algo": "Vector-Search",
+      "vtype": "use",
+      "query_idx": 0,
+      "p_at_5": 0.2,
+      "ap": 0.3333333333333333
+    },
+    {
+      "algo": "Vector-Search",
+      "vtype": "use",
+      "query_idx": 1,
+      "p_at_5": 0.0,
+      "ap": 0.0
+    },
+    {
+      "algo": "Vector-Search",
+      "vtype": "use",
+      "query_idx": 2,
+      "p_at_5": 0.2,
+      "ap": 0.42857142857142855
+    }
+  ],
+  "summary_table": [
+    {
+      "Vector Model": "SBERT",
+      "P@5": "0.600 \u00b1 0.000",
+      "MAP": "1.000 \u00b1 0.000",
+      "Num Queries": 3
+    },
+    {
+      "Vector Model": "BIOBERT",
+      "P@5": "0.000 \u00b1 0.000",
+      "MAP": "0.000 \u00b1 0.000",
+      "Num Queries": 3
+    },
+    {
+      "Vector Model": "USE",
+      "P@5": "0.133 \u00b1 0.094",
+      "MAP": "0.254 \u00b1 0.184",
+      "Num Queries": 3
+    }
+  ],
+  "recommendation": {
+    "best_model": "SBERT",
+    "best_map_score": 1.0
+  }
+}

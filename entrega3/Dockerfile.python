@@ -1,0 +1,19 @@
+# DELETE THIS LINE: FROM python:3.9-slim 
+# KEEP THIS ONE:
+FROM pytorch/pytorch:2.2.0-cuda12.1-cudnn8-runtime
+
+# Install basic tools
+RUN apt-get update && apt-get install -y curl git && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# 1. UPGRADE PIP
+RUN pip install --no-cache-dir --upgrade pip
+
+# 2. INSTALL DEPENDENCIES
+COPY requirements.txt .
+# Ensure 'torch' is NOT in requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy scripts
+COPY . .

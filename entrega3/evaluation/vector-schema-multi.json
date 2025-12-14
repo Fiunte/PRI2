@@ -1,0 +1,35 @@
+{
+  "add-field-type": [
+    {
+      "name": "knn_vector_384",
+      "class": "solr.DenseVectorField",
+      "vectorDimension": 384,
+      "similarityFunction": "cosine"
+    },
+    {
+      "name": "knn_vector_512",
+      "class": "solr.DenseVectorField",
+      "vectorDimension": 512,
+      "similarityFunction": "cosine"
+    },
+    {
+      "name": "knn_vector_768",
+      "class": "solr.DenseVectorField",
+      "vectorDimension": 768,
+      "similarityFunction": "cosine"
+    }
+  ],
+  "add-field": [
+    { "name": "text_bm25", "type": "text_general", "stored": true, "indexed": true },
+    
+    { "name": "vector_sbert", "type": "knn_vector_384", "stored": true, "indexed": true },
+    
+    { "name": "vector_use", "type": "knn_vector_512", "stored": true, "indexed": true },
+    
+    { "name": "vector_bio_clinicalbert", "type": "knn_vector_768", "stored": true, "indexed": true },
+    { "name": "vector_pubmedbert", "type": "knn_vector_768", "stored": true, "indexed": true },
+    { "name": "vector_sapbert_pubmed", "type": "knn_vector_768", "stored": true, "indexed": true },
+    { "name": "vector_bge", "type": "knn_vector_768", "stored": true, "indexed": true },
+    { "name": "vector_biobert_sent", "type": "knn_vector_768", "stored": true, "indexed": true }
+  ]
+}

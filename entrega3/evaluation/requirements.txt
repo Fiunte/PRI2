@@ -1,0 +1,15 @@
+numpy<2.0.0 # senao crasha td lol
+pandas
+tqdm
+requests
+scikit-learn
+matplotlib
+torch==2.2.0
+transformers==4.37.2
+sentence-transformers==2.5.1
+tensorflow
+tensorflow_hub
+tensorflow_text
+
+
+# PRECISA TMB DE NVIDIA CONTAINER TOOLKIT PARA CORRER OS MODELS MT MAIS RAPIDO 

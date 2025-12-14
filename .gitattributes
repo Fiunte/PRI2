@@ -1,0 +1,4 @@
+data.json filter=lfs diff=lfs merge=lfs -text
+entrega3/data_with_vectors.json filter=lfs diff=lfs merge=lfs -text
+entrega3/evaluation/data_with_vectors.json.gz filter=lfs diff=lfs merge=lfs -text
+entrega3/evaluation/data.json filter=lfs diff=lfs merge=lfs -text

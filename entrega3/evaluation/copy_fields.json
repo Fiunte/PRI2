@@ -1,0 +1,12 @@
+{
+  "add-copy-field": [
+    { "source": "brand_name", "dest": "text_all" },
+    { "source": "generic_name", "dest": "text_all" },
+    { "source": "therapeutic_category", "dest": "text_all" },
+    { "source": "indications_and_usage", "dest": "text_all" },
+    { "source": "dosage_and_administration", "dest": "text_all" },
+    { "source": "purpose", "dest": "text_all" },
+    { "source": "warnings", "dest": "text_all" },
+    { "source": "active_ingredients", "dest": "text_all" }
+  ]
+}

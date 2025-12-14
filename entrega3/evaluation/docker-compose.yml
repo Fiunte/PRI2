@@ -1,0 +1,64 @@
+version: "3.8"
+
+services:
+  solr:
+    image: solr:9
+    container_name: eval_solr
+    ports:
+      - "8985:8983"
+    command: solr-precreate drugstest
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: eval_ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_NUM_PARALLEL=2
+      - OLLAMA_MAX_LOADED_MODELS=1
+    # Modern GPU configuration
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  setup:
+    build: .
+    container_name: eval_setup
+    depends_on:
+      - solr
+    volumes:
+      - .:/app
+    # MERGED environment variables
+    environment:
+      - SOLR_URL=http://solr:8983/solr
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    # Legacy runtime method (if you prefer it over deploy)
+    runtime: nvidia
+    command: ["/bin/bash", "setup.sh"]
+
+  evaluator:
+    build: .
+    container_name: eval_runner
+    depends_on:
+      - setup
+      - ollama
+    volumes:
+      - .:/app
+    # MERGED environment variables
+    environment:
+      - SOLR_URL=http://solr:8983/solr
+      - OLLAMA_URL=http://ollama:11434
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    runtime: nvidia
+    command: tail -f /dev/null
+
+volumes:
+  ollama_data:

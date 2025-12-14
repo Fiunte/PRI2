@@ -1,0 +1,99 @@
+\documentclass[sigconf,pbalance]{acmart}
+
+\acmConference[PRI Project]{Information Processing and Retrieval (PRI) — M.EIC 2025/26}{December 2025}{FEUP, University of Porto}
+
+% --- Packages ---
+\usepackage{minted}
+\usepackage{xcolor}
+\usepackage{adjustbox}
+\usepackage{tabularx}
+\usepackage{makecell}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{hyperref}
+\graphicspath{{images/}}
+
+% --- Minted code style ---
+\definecolor{bg}{HTML}{F8F8F8}
+\setminted{
+    bgcolor=bg,
+    frame=single,
+    framesep=2mm,
+    fontsize=\scriptsize,
+    baselinestretch=1.05,
+    breaklines=true,
+    breakanywhere=true,
+    breaksymbolleft={},
+    breaksymbolright={},
+    linenos=true,
+    numbersep=5pt,
+    autogobble=true
+}
+
+\author{Lu\'is Fiunte}
+\email{up202208819@up.pt}
+\affiliation{%
+  \institution{FEUP, Universidade do Porto}
+  \city{Porto}
+  \country{Portugal}
+}
+
+\author{Marta Cruz}
+\email{up202205028@up.pt}
+\affiliation{%
+  \institution{FEUP, Universidade do Porto}
+  \city{Porto}
+  \country{Portugal}
+}
+
+\author{Ricardo Ramos}
+\email{up202206349@up.pt}
+\affiliation{%
+  \institution{FEUP, Universidade do Porto}
+  \city{Porto}
+  \country{Portugal}
+}
+
+% --- Document ---
+\begin{document}
+
+\title[Drug Label Dataset: Information Retrieval System and Evaluation]{%
+  Drug Label Dataset: Information Retrieval System and Evaluation
+}
+
+\begin{abstract}
+  This report presents the development of an information retrieval system for a comprehensive drug label dataset built from the OpenFDA API. The project encompasses the entire pipeline, from data preparation and characterization to the implementation and evaluation of a Solr-based search engine. The dataset integrates structured identifiers and unstructured text, supporting rich retrieval tasks. Two distinct retrieval setups were implemented and assessed through manual evaluation, demonstrating the system's effectiveness. The report concludes with an analysis of retrieval performance and outlines directions for future enhancements.
+\end{abstract}
+
+\begin{CCSXML}
+  <ccs2012>
+  <concept>
+  <concept_id>10002951.10003317</concept_id>
+  <concept_desc>Information systems~Information retrieval</concept_desc>
+  <concept_significance>500</concept_significance>
+  </concept>
+  </ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Information systems~Information retrieval}
+
+\keywords{Information Retrieval, OpenFDA, Drug Label Dataset, Solr}
+
+\maketitle
+
+% =============================
+% Part 1: Data Preparation
+% =============================
+\input{sections/content_preparation.tex}
+
+% =============================
+% Part 2: Information Retrieval
+% =============================
+\input{sections/content_retrieval.tex}
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{bib/references}
+
+\appendix
+\input{sections/appendix.tex}
+\end{document}

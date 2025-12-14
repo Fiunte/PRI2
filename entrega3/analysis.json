@@ -1,0 +1,16 @@
+{
+  "replace-field-type": {
+    "name": "text_general",
+    "class": "solr.TextField",
+    "positionIncrementGap": "100",
+    "analyzer": {
+      "tokenizer": {
+        "class": "solr.StandardTokenizerFactory"
+      },
+      "filters": [
+        { "class": "solr.LowerCaseFilterFactory" },
+        { "class": "solr.PorterStemFilterFactory" }
+      ]
+    }
+  }
+}

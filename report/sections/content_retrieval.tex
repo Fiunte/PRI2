@@ -1,0 +1,205 @@
+\section{Solr Indexing Configuration}
+
+Following the data preparation, the drug label dataset was converted into a collection suitable for Solr indexing. This phase focused on configuring the schema to support the specific information needs identified in the previous section, ensuring that both structured metadata and unstructured text fields were indexed appropriately for efficient search and accurate retrieval.
+
+\subsection{Indexing Process}
+
+To ensure a strictly reproducible environment, the project infrastructure is defined using Docker Compose. The setup consists of a primary Solr container (based on the official \texttt{solr:9} image) and a transient setup container that automates configuration.
+
+In order to simplify working with Docker, a \texttt{Makefile} was created, responsible for orchestrating development workflows and abstracting complex commands into simple, repeatable tasks.
+
+The indexing process followed these steps:
+
+\begin{enumerate}
+    \item Ensure the Solr core is available by polling the Solr ping endpoint until a successful response is received. This guarantees that subsequent schema modifications and data uploads will succeed without errors.
+
+    \item Configure the analysis components (tokenizers and filters) by posting \texttt{analysis.json} to the Solr schema API. The analysis setup, including the modification of the \texttt{text\_general} field type to include a \texttt{PorterStemFilterFactory} for stemming, is detailed in Appendix~\ref{appendix:analysis}.
+
+    \item Define the schema fields by posting \texttt{fields.json} to the schema API, specifying field types, storage, indexing, and multi-valued settings. This prevents Solr from automatically inferring types. Details of the add-field requests are provided in Section~\ref{appendix:addfield}.
+
+    \item Set up copy fields by posting \texttt{copy\_fields.json} to the schema API, creating a consolidated \texttt{text\_all} field to enable searching across multiple \texttt{text\_general} fields. The copy-field definitions are provided in Appendix~\ref{appendix:copyfields}.
+
+    \item Add the initial dataset by posting \texttt{data.json} to the Solr update endpoint with \texttt{commit=true}, ensuring that all documents are indexed immediately and are searchable. No annex is needed for the dataset itself.
+
+\end{enumerate}
+
+
+This automation allows the entire system to be provisioned and indexed using the single \texttt{Makefile}.
+
+\subsection{Indexing Fields and Schema}
+
+The schema design was driven by the specific retrieval requirements of the domain. Fields were categorized and typed as follows:
+
+\begin{itemize}
+    \item \textbf{Exact Match Fields (String):} Identifiers like \texttt{productNdc}, \texttt{packageNdc}, and \texttt{setId} were indexed as \textbf{string}. This decision ensures that these fields are not tokenized, preserving their exact alphanumeric structure which is critical for precise looking up, sorting, and faceting. Analyzing these as text would break them into unusable tokens.
+    \item \textbf{Full-Text Fields (Text\_general):} Descriptive fields such as \texttt{indicationsAndUsage}, \texttt{warnings}, and \texttt{activeIngredients} contain natural language. They were indexed as \textbf{text\_general}, using a standard tokenizer and a Porter Stemmer. This configuration allows for case-insensitive matching and handles morphological variations (e.g., retrieving "addiction" for "addictive"), which is essential for recall in medical text search.
+    \item \textbf{Numeric and Date Fields:} \texttt{version} (\textbf{pint}) and \texttt{effectiveTime} (\textbf{pdate}) were strongly typed to enable range queries (e.g., finding drugs updated in the last year) and mathematical operations in function queries.
+\end{itemize}
+
+A unified copy-field, \texttt{text\_all}, was created to aggregate content from all major textual fields. This allows for broad "catch-all" queries without needing to specify every individual field, significantly simplifying the default search behavior. The final schema manually defines 23 fields to prevent Solr's "schemaless" mode from inferring incorrect types (e.g., treating an ID as a number), ensuring index stability.
+
+
+\section{Query Design and Retrieval Strategy}
+
+In this section, we explore the query strategies employed to retrieve relevant information from the structured medicine dataset. Rather than simple keyword matching, we utilized advanced Solr features to address specific challenges in medical information retrieval.
+
+\subsection{Boosting Strategies}
+Relevance scoring was fine-tuned using three types of boosting:
+
+\begin{itemize}
+    \item \textbf{Field Boosts (qf):} We assigned higher importance to concise, defining fields. for example, setting \texttt{qf=brand\_name\^{}3 generic\_name\^{}2} ensures that matches in the drug name contribute more to the score than matches in long descriptive text like \texttt{indications\_and\_usage}.
+    \item \textbf{Term Boosts (\textasciicircum{}):} Critical query terms were manually boosted to reflect medical priority. For instance, in a query like \texttt{fever\^{}2 headache pregnancy\^{}3}, the term "pregnancy" is weighted heavily to ensure safety-critical constraints are respected in the ranking.
+    \item \textbf{Independent Boosts (bf):} To prioritize newer information without strictly filtering out older records, we applied a Reciprocal Rank function on the \texttt{effective\_time} field. This function, \texttt{recip(ms(NOW,effective\_time)...)}, additively boosts recent documents, ensuring that users see the most up-to-date labels first.
+\end{itemize}
+
+\subsection{Handling User Input and Precision}
+To handle the variability of user input and ensure high precision, we implemented:
+
+\begin{itemize}
+    \item \textbf{Fuzzy and Wildcard Search:} Medical terms are often misspelled. We utilized fuzzy search (e.g., \texttt{generic\_name:Ibuprof\textasciitilde{}1}) to match "Ibuprofen" even with typos, and wildcards (e.g., \texttt{addict*}) to capture variations like "addiction" or "addictive".
+    \item \textbf{Proximity Search (pf, ps):} We used Phrase Fields (\texttt{pf}) and Phrase Slop (\texttt{ps}) to boost documents where query terms appear close together. For example, finding "ibuprofen" and "allergy" within 5 words of each other in the \texttt{warnings} field is a strong signal of relevance compared to them appearing in unrelated sections of a long document.
+\end{itemize}
+
+
+\subsection{Example Retrieval Setup and Evaluation Criteria}
+\label{sec:example-setup}
+
+This section provides a complete demonstration query for a specific, safety-critical information need.
+
+\textbf{Problem / Search Goal:} Suppose we are a pregnant woman experiencing a fever and a headache. The objective is to find an oral-route OTC drug that is medically considered the safest option for use during pregnancy and has been approved or updated recently (2023–2025). The goal is to return results that are relevant, safe, and complete.
+
+\textbf{Example Solr Query:}
+
+\begin{minted}{bash}
+q=(fever^4 headache^3)
+defType=edismax
+
+qf=purpose^4.0 warnings^3.0 text_all
+fq=product_type:("OTC")
+fq=route:ORAL
+fq=effective_time:[2022-01-01T00:00:00Z TO NOW]
+
+bq=warnings:"safe for pregnancy"~5^3.0
+pf=warnings^2.0
+\end{minted}
+
+\textbf{Explanation of Logic and Safety Fixes:}
+\begin{itemize}
+    \item \textbf{q}: Focuses strictly on the user's symptoms ($\texttt{fever}$, $\texttt{headache}$) with specific boosts ($\texttt{\^{}4}, \texttt{\^{}3}$) to ensure the retrieved documents explicitly address the ailment rather than just mentioning the words in passing.
+    \item \textbf{fq}: Narrows the result set to documents that meet \textbf{strict usability criteria}: $\texttt{OTC}$ availability and $\texttt{ORAL}$ route. Crucially, it filters for recency using $\texttt{effective\_time}$, removing outdated medical information.
+    \item \textbf{qf}: Searches across fields but prioritizes $\texttt{purpose}$ (what the drug is for) and $\texttt{warnings}$ (safety info) over generic text ($\texttt{text\_all}$).
+    \item \textbf{bq}: Utilizes a proximity boost ($\texttt{\~{}5}$) to increase the ranking of documents that contain the phrase "safe for pregnancy" (or similar variations where words are within 5 tokens of each other), directly addressing the safety requirement.
+    \item \textbf{pf}: Adds a phrase boost to the $\texttt{warnings}$ field to ensure symptom keywords appearing close together in safety sections are ranked higher.
+\end{itemize}
+
+\textbf{Manual Evaluation Criteria:}
+To achieve a Relevant score (1), the document must satisfy all constraints defined in the project's relevance logic:
+
+\begin{itemize}
+    \item \textbf{Symptom Match:} Explicitly indicates treatment for $\texttt{fever}$ or $\texttt{headache}$.
+    \item \textbf{Route \& Type:} Specifies an $\texttt{oral}$ administration route (e.g., tablet, liquid) and is classified as $\texttt{OTC}$.
+    \item \textbf{Recency:} Includes a product information date within the $\texttt{2023–2025}$ range (evaluated against the $\texttt{effective\_time}$ filter).
+    \item \textbf{Safety Profile:} Does \textbf{not} strictly contraindicate use during pregnancy. Note: Standard regulatory warnings such as "consult a health professional before use" are accepted as Relevant (1).
+\end{itemize}
+
+Bad results (Irrelevant, Score 0) are those that treat different symptoms, require non-oral administration (e.g., topical, nasal), require a prescription, are outdated, or explicitly forbid use during pregnancy.
+
+\section{Evaluation}
+In this section, we evaluate the effectiveness of two distinct retrieval setups as a formal scientific experiment. The objective is to quantitatively measure the retrieval effectiveness of a naive baseline versus our advanced ranking logic mentioned in the previous section, using a manually created "ground truth" for the required safety-critical information need.
+
+\subsection{Evaluation Methodology}
+
+Our methodology follows the standard Information Retrieval (IR) evaluation paradigm, focusing on the single, safety-critical information need regarding pregnancy.
+
+\subsubsection{Information Need}
+We define the specific need used for evaluation in Table~\ref{tab:infoneed}.
+
+\begin{table}[h!]
+    \centering
+    \caption{Information Need and Search Parameters}
+    \label{tab:infoneed}
+    \begin{tabular}{p{3.0cm} p{4.5cm}}
+        \hline
+        \textbf{User Scenario}     & A pregnant woman with a fever and headache needs a safe, recent, oral OTC drug.                                                \\
+        \hline
+        \textbf{Baseline Query}    & \texttt{fever headache pregnancy oral OTC}                                                                                     \\
+        \textbf{Advanced Criteria} & \textbf{Must match:} \texttt{product\_type:OTC} AND \texttt{route:\allowbreak ORAL} AND \texttt{effective\_time:[2022 TO NOW]} \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\subsubsection{Retrieval Setups}
+We compare the two defined setups:
+\begin{itemize}
+    \item \textbf{Setup 1 (Baseline):} Serves as a naive control. It queries the text using a simple "bag-of-words" approach (\texttt{q="fever headache pregnancy oral OTC"}) against a generic catch-all field (\texttt{qf=text\_all\^{}1}). Crucially, it \textit{does not} use strict schema filters, relying on keyword matching for terms like "OTC" and "oral".
+    \item \textbf{Setup 2 (Advanced):} Uses sophisticated query logic including:
+          \begin{itemize}
+              \item \textbf{Strict Filtering (\texttt{fq}):} Enforces route:ORAL
+                    and product\_type:OTC to remove irrelevant formats immediately.
+              \item \textbf{Field Boosting (\texttt{qf}):} Prioritizes core metadata (\texttt{purpose\^{}4, warnings\^{}3}) over generic text.
+              \item \textbf{Relevance Boosting (\texttt{bq}):} Boosts documents containing safety phrases (e.g., warnings:\allowbreak "safe for pregnancy"\~{}5\^{}3.0).
+          \end{itemize}
+\end{itemize}
+
+\subsubsection{Manual Evaluation Process}
+A relevance judgment file (qrels.txt) was created using the \textbf{pooling method} (top $K=20$ results from both setups). Each unique document was \textbf{manually evaluated} (with AI-based verification) using a binary relevance scale (1=Relevant, 0=Irrelevant). A document was marked Relevant only if it met all safety criteria: treating the symptoms, being strictly OTC and Oral, and having no pregnancy contraindications.
+
+\subsection{Results and Analysis for Q1}
+We executed both queries against our Solr instance and used the \texttt{pytrec\_eval} tool to calculate P@10 (Precision at 10) and AP (Average Precision).
+
+\subsubsection{Comparative Metrics}
+Table~\ref{tab:q1results} shows the performance of both systems.
+
+\begin{table}[h!]
+    \centering
+    \caption{Comparative Metrics for Query Q1}
+    \label{tab:q1results}
+    \begin{tabular}{l c c c}
+        \hline
+        \textbf{Metric}    & \textbf{Setup 1 (Base.)} & \textbf{Setup 2 (Adv.)} & \textbf{\% Imprv.} \\
+        \hline
+        \textbf{AP (Q1)}   & 0.0357                   & 0.5731                  & +1505.3\%          \\
+        \textbf{P@10 (Q1)} & 0.1000                   & 0.5000                  & +400.0\%           \\
+        \hline
+    \end{tabular}
+\end{table}
+
+The results indicate a massive disparity in performance. The Advanced setup (Setup 2) achieved an \texttt{Average Precision (AP)}of 0.5731, compared to the negligible 0.0357 of the Baseline. This represents an improvement of over \texttt{1500\%}. Similarly, \texttt{P@10} jumped from 0.1 (1 relevant doc in top 10) to 0.5 (5 relevant docs in top 10), a \texttt{400\% increase}.
+
+\subsubsection{Precision-Recall Curve}
+To visualize the performance trade-off, we generated the Interpolated Precision-Recall curve.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=\columnwidth]{pr_curve.png}
+    \Description{Interpolated Precision-Recall Curve showing the Advanced Setup (blue line) significantly outperforming the Baseline Setup (orange line). The Advanced line stays high across recall levels, while Baseline drops quickly.}
+    \caption{Interpolated Precision-Recall Curve}
+    \label{fig:prcurve}
+\end{figure}
+
+\subsection{Precision-Recall Analysis}
+
+Figure \ref{fig:prcurve} confirms the dominance of the Advanced setup (Setup 2). Its curve maintains high precision and extends to high recall, demonstrating that the strict filters (\texttt{fq=route:ORAL}) and boosting logic successfully retrieved the majority of safe drugs. The "step-like" shape reflects the distinct relevant documents found.
+
+In contrast, the Baseline curve (Setup 1) is severely truncated, terminating at very low recall. This visual "shortness" indicates a critical \textbf{Recall Failure}: the system missed the majority of relevant documents. The naive keyword search was overwhelmed by noise (e.g., matching "not for oral use"), burying the correct results deep in the ranking where they were not retrieved.
+
+\subsection{Discussion of Results}
+
+The evaluation clearly demonstrates the superiority of the Advanced setup (Setup 2) over the Baseline (Setup 1), with AP increasing from 0.03 to 0.57.
+
+\paragraph{Analysis of Baseline Failure}
+The Baseline's poor performance ($P@10 = 0.1$) highlights the limitations of naive "bag-of-words" search in safety-critical domains. By searching for "OTC" and "oral" merely as keywords in the unstructured \texttt{text\_all} field, Setup 1 retrieved numerous irrelevant documents. These included labels where "oral" appeared in negated contexts (e.g., "not for oral use") or where OTC was mentioned only in reference to other products. The lack of structural filtering meant the system could not distinguish between substantial matches (e.g., product form) and incidental text occurrences.
+
+\paragraph{Success of Filter-Boost Strategy}
+Setup 2 succeeded because it effectively combined \textbf{hard constraints} with \textbf{soft relevance signals}.
+\begin{itemize}
+    \item The use of strict filters (\texttt{fq=route:ORAL}) guaranteed that 100\% of the candidate pool was at least administratively correct, eliminating the noise that plagued the baseline.
+    \item The proximity boost (\texttt{bq=... "safe for pregnancy"\^{}3}) acted as a semantic proxy, successfully pushing documents that explicitly addressed safety to the top.
+\end{itemize}
+
+\paragraph{Limitations}
+Despite the strong performance, the current setup relies on exact metadata coverage. Drugs with missing `route` or `effective\_time` fields would be excluded regardless of their text content. Additionally, the boolean text match for "safe for pregnancy" is rigid; a semantic search approach using embeddings (planned for future work) would robustly handle variations like "safe for expectant mothers" that the current keyword-based system might miss.
+
+
+\clearpage
+% (End of Content)

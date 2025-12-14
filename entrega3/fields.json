@@ -1,0 +1,27 @@
+{
+  "add-field": [
+    {"name":"version","type":"pint","stored":true,"indexed":true,"multiValued":false},
+    {"name":"effective_time","type":"pdate","stored":true,"indexed":true,"multiValued":false},
+    {"name":"product_ndc","type":"string","stored":true,"indexed":true,"multiValued":true},
+    {"name":"primary_ndc","type":"string","stored":true,"indexed":true,"multiValued":true},
+    {"name":"package_ndc","type":"string","stored":true,"indexed":true,"multiValued":true},
+    {"name":"drug_id","type":"string","stored":true,"indexed":true,"multiValued":false},
+    {"name":"set_id","type":"string","stored":true,"indexed":true,"multiValued":false},
+    {"name":"therapeutic_category","type":"text_general","stored":true,"indexed":true,"multiValued":true},
+    {"name":"brand_name","type":"text_general","stored":true,"indexed":true,"multiValued":false},
+    {"name":"generic_name","type":"text_general","stored":true,"indexed":true,"multiValued":false},
+    {"name":"manufacturer","type":"text_general","stored":true,"indexed":true,"multiValued":false},
+    {"name":"route","type":"text_general","stored":true,"indexed":true,"multiValued":true},
+    {"name":"substance_name","type":"text_general","stored":true,"indexed":true,"multiValued":true},
+    {"name":"product_type","type":"text_general","stored":true,"indexed":true,"multiValued":false},
+    {"name":"unii","type":"string","stored":true,"indexed":true,"multiValued":true},
+    {"name":"indications_and_usage","type":"text_general","stored":true,"indexed":true,"multiValued":false},
+    {"name":"dosage_and_administration","type":"text_general","stored":true,"indexed":true,"multiValued":false},
+    {"name":"purpose","type":"text_general","stored":true,"indexed":true,"multiValued":false},
+    {"name":"warnings","type":"text_general","stored":true,"indexed":true,"multiValued":false},
+    {"name":"active_ingredients","type":"text_general","stored":true,"indexed":true,"multiValued":false},
+    {"name":"inactive_ingredients","type":"text_general","stored":true,"indexed":true,"multiValued":false},
+    {"name":"storage_and_handling","type":"text_general","stored":true,"indexed":true,"multiValued":false},
+    {"name": "text_all", "type": "text_general", "stored": false, "indexed": true, "multiValued": true}
+  ]
+}

@@ -1,0 +1,31 @@
+# LaTeX Build Artifacts
+*.aux
+*.bbl
+*.blg
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.fdb_latexmk
+*.toc
+*.lof
+*.lot
+*.nav
+*.snm
+*.vrb
+*.bcf
+*.run.xml
+*.xdv
+
+# Minted (Code Highlighting) Cache
+_minted/
+
+# Generated PDF
+*.pdf
+
+# Editor & System Files
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*~

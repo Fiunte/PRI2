@@ -1,0 +1,180 @@
+\section{Introduction}
+Drug labeling data represents one of the most information-rich and complex resources in the pharmaceutical field~\cite{fang2016druglabel,nature_fdalabel}. Each label contains structured metadata such as product identifiers and manufacturing details, as well as long unstructured text describing therapeutic use, dosage, active ingredients, and safety warnings~\cite{nature_fdalabel,fda_fdalabel}. These records are critical for both healthcare professionals and automated systems that require reliable access to regulatory information~\cite{fang2016druglabel,fda_fdalabel}.
+
+The dataset analyzed in this work was created using the OpenFDA API, a public data service provided by the U.S. Food and Drug Administration (FDA)~\cite{openfdaapi,acm_openfda}. This API grants access to thousands of official drug label submissions, which were programmatically extracted and combined into a single, cleaned dataset~\cite{openfdaapi,fda_fdalabel,frontiers_extraction}. Each entry represents a specific drug or drug product, identified by unique codes such as \texttt{product\_ndc}, \texttt{package\_ndc}, and \texttt{set\_id}. The dataset also includes descriptors such as \texttt{therapeutic\_category} and \texttt{brand\_name}, along with free-text fields like \texttt{indications\allowbreak\_and\allowbreak\_usage}, \texttt{dosage\allowbreak\_and\allowbreak\_administration}, and \texttt{warnings}~\cite{frontiers_extraction,liu_dli}.
+
+
+After extraction, the data were standardized to ensure consistency and to handle incomplete or missing fields~\cite{liu_dli,nature_fdalabel}. The resulting collection retains both structured and unstructured information, making it a valuable foundation for building information retrieval systems in later phases~\cite{fang2016druglabel,nature_fdalabel}.
+
+
+\section{Data Source Authority and Quality}
+The OpenFDA platform is an official initiative maintained by the U.S. Food and Drug Administration, designed to provide open access to regulatory and safety data. Each record within the \textit{drug label} endpoint originates directly from approved submissions or post-marketing updates.
+
+This source offers several advantages in terms of reliability:
+
+\begin{itemize}
+  \item \textbf{Authority:} The FDA is the primary regulatory agency for pharmaceutical products in the United States, ensuring data authenticity.
+  \item \textbf{Traceability:} Each label is linked to official identifiers (e.g., \verb|set_id|, \verb|product_ndc|), enabling cross-referencing with other FDA datasets.
+  \item \textbf{Data Integrity:} The OpenFDA API enforces standardized JSON schemas and field structures, minimizing format inconsistencies.
+\end{itemize}
+
+Beyond its internal consistency, the OpenFDA platform is widely regarded as a foundational reference for pharmaceutical information. Data derived from FDA sources are routinely integrated into commercial pharmacy databases (e.g., First Databank, Lexicomp, and Micromedex), used by major electronic health record (EHR) systems, and cited in regulatory and academic research.
+
+\textit{As of November 2024, the FDALabel database contains over \textbf{158,000} human drug labeling documents—including \textbf{97,289} OTC and \textbf{57,699} prescription labels—providing comprehensive pharmaceutical coverage for operational and analytical applications. The dataset is available at:} \underline{\textit{\url{https://nctr-crs.fda.gov/fdalabel/ui/search}}}.
+
+
+
+\section{Exploratory Data Analysis}
+Exploratory Data Analysis (EDA) was performed to understand the characteristics of the dataset, detect inconsistencies, and guide the cleaning process. The original records were retrieved in \texttt{JSON} format via the OpenFDA API and subsequently converted into a unified \texttt{CSV} file using the data extraction pipeline described in Annex~A. This CSV format facilitated the application of cleaning routines, exploratory and retrieval-oriented analysis, and index construction. Beyond descriptive statistics, a retrieval-oriented analysis was conducted to evaluate which textual attributes contribute most to the construction of a search index.
+
+
+\subsection{Therapeutic Categories}
+Figure~\ref{fig:categories} shows the distribution of therapeutic categories. Each drug entry may belong to multiple categories, all of which were counted individually. The most frequent categories include \textit{analgesics}, \textit{NSAIDs}, and \textit{antibiotics}. These distributions indicate high thematic diversity, which will be essential for coverage evaluation in retrieval experiments.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.40\textwidth]{categories.png}
+  \Description{Bar chart showing the frequency of different therapeutic categories such as analgesics, NSAIDs, and antibiotics.}
+  \caption{Distribution of therapeutic categories in the dataset.}
+  \label{fig:categories}
+\end{figure}
+
+\subsection{Key Descriptive Fields and Search-Oriented Statistics}
+Table~\ref{tab:text-eda} summarizes the main textual fields in the dataset: \newline \texttt{indications\_and\_usage}, \texttt{dosage\allowbreak\_and\allowbreak\_administration}, \texttt{purpose}, \texttt{warnings}, and \texttt{active\allowbreak\_ingredients}. These represent the unstructured portion of the drug label documents and contain the richest information for search and retrieval tasks.
+
+Metrics such as average word count, vocabulary size, and type-token ratio were computed to assess text richness and variability. The \texttt{indications\_and\_usage} field showed the highest textual volume, frequently spanning several hundred words with detailed therapeutic descriptions and clinical terminology. The \texttt{warnings} section displayed similar complexity, dominated by regulatory and safety-related language.
+
+In contrast, \texttt{purpose} and \texttt{active\_ingredients} are concise and structured, usually limited to a few keywords or chemical names. These fields are particularly useful for faceted or field-specific searches. The \texttt{dosage\_and\_administration} field falls in between—long enough for meaningful keyword analysis but structured enough for section-based retrieval.
+
+Overall, this variability in verbosity and vocabulary density reflects the heterogeneous nature of the dataset. From an IR perspective, this is advantageous: longer sections enrich ranking through contextual relevance, while concise fields improve precision via targeted filtering. These insights guided the selection and weighting of indexable fields in later project stages.
+
+\begin{table}[h!]
+  \centering
+  \caption{Summary of main textual fields relevant for retrieval.}
+  \begin{tabular}{|l|c|c|c|c|}
+    \hline
+    \textbf{Field} &
+    \makecell{\textbf{Average}                   \\ \textbf{Word Count}} &
+    \makecell{\textbf{Standard}                  \\ \textbf{Error}} &
+    \makecell{\textbf{Max}                       \\ \textbf{Words}} &
+    \makecell{\textbf{Unique}                    \\ \textbf{Words}} \\
+    \hline
+    \makecell{Indications                        \\ And Usage}      & 162.2 & 1.33 & 1994  & 17795 \\
+    \hline
+    \makecell{Dosage and                         \\ Administration}  & 477.9 & 3.97 & 8307  & 30948 \\
+    \hline
+    Purpose        & 7.3   & 0.15 & 604  & 4967  \\
+    \hline
+    Warnings       & 430.1 & 5.06 & 5229 & 16940 \\
+    \hline
+    \makecell{Active                             \\ Ingredients}         & 13.5  & 0.16 & 415   & 5801  \\
+    \hline
+    \makecell{Inactive                           \\ Ingredients}       & 26.1  & 0.26 & 1349  & 8186  \\
+    \hline
+  \end{tabular}
+  \label{tab:text-eda}
+\end{table}
+
+\subsection{Routes of Administration}
+Figure~\ref{fig:route} shows the distribution of administration routes. The most common are \textit{oral}, \textit{topical}, and \textit{intravenous}. This attribute will later serve as a facet field for refining search results.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.40\textwidth]{route.png}
+  \Description{Bar chart displaying the distribution of administration routes, with oral being the most frequent, followed by topical and intravenous.}
+  \caption{Distribution of administration routes.}
+  \label{fig:route}
+\end{figure}
+
+\section{Script Implementation for Database Construction}
+A Python-based pipeline automates extraction, processing, and storage of drug label information from the OpenFDA API.
+
+\begin{enumerate}
+  \item \textbf{Category and Term Management:} A dictionary of therapeutic categories with associated keywords guides API queries.
+  \item \textbf{API Interaction:} Iterative retrieval with pagination and rate-limit management.
+  \item \textbf{Data Extraction:} Standardization of field names and flattening of nested structures.
+  \item \textbf{Database Construction:} Merging entries by identifier, resolving duplicates, and preserving multi-category records.
+  \item \textbf{Output Generation:} Export of the cleaned dataset to CSV for reproducibility.
+  \item \textbf{Error Handling:} Automatic retries and exception logging ensure robustness.
+\end{enumerate}
+
+\begin{figure}[htbp]        % usa [htbp] se não quiseres forçar aqui
+  \centering
+  \includegraphics[width=0.85\linewidth]{Pipeline.jpeg}
+  \Description{Flowchart illustrating the data cleaning pipeline: API Category Management to API Interaction, Data Extraction, Database Construction (Merge/Resolve), Output Generation (CSV), and Error Handling.}
+  \caption{Pipeline}
+  \label{fig:pipeline}
+\end{figure}
+
+\section{Data Cleaning and Handling of Incomplete Entries}
+
+The raw dataset obtained from the OpenFDA API was highly unstructured and contained a substantial number of incomplete entries. Many fields were sparsely populated; for example, over 85\% of entries lacked a UPC code, approximately 70\% were missing storage and handling information, and around 67\% did not include purpose. Even core identifiers and naming fields, such as brand name, generic name, and manufacturer, were missing in more than 55\% of the records.
+
+To improve the dataset's reliability and usability, several steps were taken:
+
+\begin{enumerate}
+  \item \textbf{Dropping irrelevant attributes:} Columns not essential for the analysis or search tasks were removed to streamline the dataset. The UPC was discarded because more relevant identifiers, such as primary and product NDCs, were already present for every entry. The search term column was removed as it primarily served as a helper attribute during dataset development and does not contribute to downstream analysis or search functionality.
+
+
+  \item \textbf{Removing entries without key identifiers:} All records that lacked any of the essential identification fields --- \textit{brand name, generic name, product type, package NDC, or manufacturer} --- were removed. Entries missing these values provided virtually no identifying information, making them unusable for reliable analysis or classification. Notably, every entry missing one of these identifiers was also missing all of them. This pattern reaffirms the authenticity and consistency of the source data, as the absence of identifiers reflects a genuine lack of information for those products rather than a data quality issue in the dataset itself.
+
+
+
+  \item \textbf{Assigning therapeutic categories:} Each drug entry was tagged with a therapeutic category representing a general type of medicine. This facilitated grouping and analysis without adding extensive detail, and also provides a structured layer of classification that will be useful when implementing the search engine, which is the core of the project.
+\end{enumerate}
+
+After cleaning, all retained entries had valid names, and missing values in key identifiers dropped to 0\%. Core descriptive fields—such as substance name, UNII, route, indications and usage, and dosage and administration—were nearly complete, with fewer than 2\% of missing values. The \texttt{purpose} field remained partially incomplete (58\%), as it is optional and often omitted for generic drugs. This limitation is minor, since the \texttt{indications\_and\_usage} field already provides the clinically relevant information needed for search and retrieval tasks in Solr.
+
+This cleaning process ensured that the final dataset, is more structured, reliable, and suitable for downstream analysis and search indexing, while retaining high coverage of core identifying and categorical information.
+
+\section{Key Attributes for Search Engine Implementation}
+The cleaned dataset includes 22 attributes combining structured metadata and rich unstructured text. The following are the most relevant for building a Solr-based search system:
+
+\begin{itemize}
+  \item \textbf{indications\_and\_usage:} Core field describing therapeutic purpose; high textual variability, essential for relevance ranking.
+  \item \textbf{dosage\_and\_administration:} Describes recommended dosages and forms; suitable for detailed phrase and proximity search.
+  \item \textbf{purpose:} Concise description of intended drug use; valuable for quick retrieval and query expansion.
+  \item \textbf{warnings:} Rich in safety-related terms; critical for semantic matching and alert-based filtering.
+  \item \textbf{active\_ingredients:} Supports fielded search and fil\-tering by compound name.
+  \item \textbf{inactive\_ingredients:} Useful for chemical comparison and allergy-related searches.
+  \item \textbf{route} and \textbf{therapeutic\_category:} Structured facets enabling advanced filtering.
+  \item \textbf{manufacturer\_name:} Useful for metadata queries and result grouping.
+\end{itemize}
+
+For implementation, textual fields will be tokenized using a domain-adapted analyzer (standard + bio\-medical stopword removal), while structured fields will be stored as filterable facets. This setup supports hybrid ranking based on both full-text similarity and field weighting.
+
+\section{Conceptual Model}
+Each record in the dataset represents a \textbf{drug label document}, combining structured identifiers and unstructured descriptions. Conceptually, the entities are:
+
+\begin{itemize}
+  \item \textbf{Drug Product:} Core entity, identified by NDC codes.
+  \item \textbf{Label Document:} Textual and regulatory information per drug.
+  \item \textbf{Active Ingredient:} Linked to multiple products.
+  \item \textbf{Manufacturer:} Produces multiple drug products.
+  \item \textbf{Therapeutic Category:} Groups drugs by pharmacological class.
+\end{itemize}
+
+In this project, each record represents a single drug label document and all relevant attributes—structured identifiers, textual fields, and categorizations—are combined in one table. Since the schema is flat, with every field stored together under 'DrugLabel' and no linked tables or relationships, a standard UML diagram was not required for the initial phase. All conceptual entities discussed (drug product, label, ingredient, manufacturer, category) are just attributes in the same record, not modeled separately.
+
+\section{Information Needs and Follow-up Directions}
+The dataset supports several information retrieval scenarios:
+
+\begin{itemize}
+  \item \textbf{Condition-based Retrieval:} Find drugs by disease or symptom (e.g., ``treatments for hypertension'').
+  \item \textbf{Safety Queries:} Retrieve all drugs containing specific warnings or contraindications.
+  \item \textbf{Ingredient-based Lookup:} Identify products containing a given compound.
+  \item \textbf{Comparative Retrieval:} Compare dosage or safety profiles across similar drugs.
+  \item \textbf{Manufacturer-based Search:} Retrieve all drugs from a specific producer.
+  \item \textbf{Trend Analysis for Therapeutic Categories:} Search for trends in drug products and active ingredients associated with a specific health problem or therapeutic category. For example, ``what active ingredients are most commonly used in medications for diabetes'' or ``how has the choice of therapeutic class changed for hypertension drugs in recent years''.
+\end{itemize}
+
+\subsection{Characterization of Follow-up Information Needs}
+In future work, these information needs will guide the design and evaluation of IR experiments using the dataset. Planned directions include:
+
+\begin{itemize}
+  \item \textbf{Retrieval Evaluation:} Measuring precision and recall for category-based and ingredient-based queries, using different Solr configurations.
+  \item \textbf{System Enhancement:}  Exploring methods for semantic query expansion (e.g., synonym-based retrieval), advanced ranking with word embeddings, and user-oriented faceted exploration.
+\end{itemize}
+
+
+% (End of Part 1)

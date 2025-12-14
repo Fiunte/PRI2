@@ -1,0 +1,25 @@
+{
+  "add-field-type": [
+    {
+      "name": "drugVector",
+      "class": "solr.DenseVectorField",
+      "vectorDimension": 768,
+      "similarityFunction": "cosine",
+      "knnAlgorithm": "hnsw"
+    }
+  ],
+  "add-field": [
+    {
+      "name": "vector",
+      "type": "drugVector",
+      "indexed": true,
+      "stored": true
+    },
+    { 
+      "name": "text_bm25", 
+      "type": "text_general", 
+      "stored": true, 
+      "indexed": true 
+    }
+  ]
+}
