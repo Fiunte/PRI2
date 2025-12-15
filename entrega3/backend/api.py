@@ -196,6 +196,7 @@ def search_drugs(
             
             docs = execute_solr_query(id_params)
             if docs:
+                for d in docs: d['score'] = 1.0
                 return cluster_results(docs)
 
         # --- BRANCH 2: HYBRID SEARCH (PubMedBERT + BM25) ---
@@ -281,3 +282,64 @@ def search_drugs(
     except Exception as e:
         print(f"Server Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+# --- MORE LIKE THIS ENDPOINT (Relevance Feedback) ---
+
+@app.get("/more-like-this")
+def more_like_this(id: str = Query(...)):
+    """
+    Returns documents similar to the given document ID using Solr's MLT (MoreLikeThis) feature.
+    This implements 'Relevance Feedback' where the user selects a relevant result to find similar ones.
+    """
+    try:
+        # MLT Params
+        params = {
+            "q": f'id:"{id}"',
+            "mlt": "true",
+            "mlt.fl": "active_ingredients,purpose,indications_and_usage,generic_name",
+            "mlt.mindf": "1",
+            "mlt.mintf": "1",
+            "mlt.count": "5",
+            "rows": "5",
+            "fl": "*,score",
+            "wt": "json"
+        }
+        
+        # We need to parse raw solr response to get the MLT section usually, 
+        # but if we query q=id:X & mlt=true, the 'response' has the doc X, and 'moreLikeThis' has the neighbors.
+        # Alternatively, we can use the mlt handler.
+        # Let's use the select handler with mlt=true.
+        
+        r = requests.post(
+            f"{SOLR_URL}/{COLLECTION}/select",
+            data=params,
+            headers={"Content-Type": "application/x-www-form-urlencoded"}
+        )
+        r.raise_for_status()
+        data = r.json()
+        
+        # Solr MLT response structure:
+        # { "response": { "docs": [THE_SOURCE_DOC] }, "moreLikeThis": { "SOURCE_ID": { "docs": [...] } } }
+        
+        mlt_data = data.get("moreLikeThis", {})
+        similar_docs = []
+        if id in mlt_data:
+            similar_docs = mlt_data[id].get("docs", [])
+            
+        # Fallback: if id needs escaping or looked different (e.g. quotes in key), try the first key
+        if not similar_docs and mlt_data:
+            first_key = list(mlt_data.keys())[0]
+            similar_docs = mlt_data[first_key].get("docs", [])
+
+        # Clean up lists (optional, similar to main search)
+        cleaned = []
+        for doc in similar_docs:
+             # Basic cleanup if needed
+             cleaned.append(doc)
+             
+        return cleaned
+
+    except Exception as e:
+        print(f"MLT Error: {e}")
+        # Return empty list gracefully
+        return []

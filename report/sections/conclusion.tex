@@ -1,0 +1,12 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+This project successfully developed a comprehensive drug information retrieval system, evolving from a raw data pipeline to a sophisticated hybrid search application.
+
+The development began with establishing a robust data foundation by ingesting and characterizing datasets from OpenFDA and DrugBank. We defined a clear conceptual model centered on the "Drug" entity and implemented a reproducible ETL pipeline to clean and structure this diverse data.
+
+Building on this foundation, we focused on core retrieval capabilities using Apache Solr. We implemented and evaluated multiple retrieval configurations, establishing a strong baseline using standard text analysis techniques. Our manual evaluation framework allowed us to quantify the performance of different field weighting strategies.
+
+Subsequently, we significantly advanced the state of the art of our system by implementing a Hybrid Search architecture. Our extensive evaluation of dense vector models identified \textbf{PubMedBERT (NeuML)} as the superior embedding model for this domain. By combining this semantic signal with BM25 keyword matching using Reciprocal Rank Fusion (RRF), we achieved a dramatic performance improvement, with the optimal configuration ($\alpha=0.5$) doubling the Mean Average Precision (MAP) compared to vector-only search.
+
+Finally, we wrapped these backend advances in a modern, user-centric frontend. Features like \textbf{Smart Filtering}, \textbf{Result Clustering}, \textbf{Semantic Snippets}, and \textbf{Visual Chemical Structures} (via PubChem) directly address real-world user needs for precision and explainability. The system now stands as a complete, end-to-end solution for pharmaceutical information retrieval, offering both high-accuracy search and an intuitive, feature-rich discovery experience. Future work could explore personalized ranking based on user history and expanding the knowledge graph with drug-interaction data.

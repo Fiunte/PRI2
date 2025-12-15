@@ -158,13 +158,13 @@ Table~\ref{tab:q1results} shows the performance of both systems.
         \hline
         \textbf{Metric}    & \textbf{Setup 1 (Base.)} & \textbf{Setup 2 (Adv.)} & \textbf{\% Imprv.} \\
         \hline
-        \textbf{AP (Q1)}   & 0.0357                   & 0.5731                  & +1505.3\%          \\
+        \textbf{AP (Q1)}   & 0.0695                   & 0.6231                  & +796.5\%           \\
         \textbf{P@10 (Q1)} & 0.1000                   & 0.5000                  & +400.0\%           \\
         \hline
     \end{tabular}
 \end{table}
 
-The results indicate a massive disparity in performance. The Advanced setup (Setup 2) achieved an \texttt{Average Precision (AP)}of 0.5731, compared to the negligible 0.0357 of the Baseline. This represents an improvement of over \texttt{1500\%}. Similarly, \texttt{P@10} jumped from 0.1 (1 relevant doc in top 10) to 0.5 (5 relevant docs in top 10), a \texttt{400\% increase}.
+The results indicate a massive disparity in performance. The Advanced setup (Setup 2) achieved an \texttt{Average Precision (AP)} of 0.6231, compared to the 0.0695 of the Baseline. This represents an improvement of over \texttt{790\%}. Similarly, \texttt{P@10} jumped from 0.1 (1 relevant doc in top 10) to 0.5 (5 relevant docs in top 10), a \texttt{400\% increase}.
 
 \subsubsection{Precision-Recall Curve}
 To visualize the performance trade-off, we generated the Interpolated Precision-Recall curve.
@@ -198,4 +198,4 @@ Setup 2 succeeded because it effectively combined \textbf{hard constraints} with
 \end{itemize}
 
 \paragraph{Limitations}
-Despite the strong performance, the current setup relies on exact metadata coverage. Drugs with missing `route` or `effective\_time` fields would be excluded regardless of their text content. Additionally, the boolean text match for "safe for pregnancy" is rigid; a semantic search approach using embeddings (planned for future work) would robustly handle variations like "safe for expectant mothers" that the current keyword-based system might miss.
+Despite the strong performance, the current setup relies on exact metadata coverage. Drugs with missing `route` or `effective\_time` fields would be excluded regardless of their text content. Additionally, the boolean text match for "safe for pregnancy" is rigid; a semantic search approach using embeddings (implemented in the subsequent phase, see Section~\ref{sec:hybrid-search-best-model}) robustly handles variations like "safe for expectant mothers" that the current keyword-based system might miss.

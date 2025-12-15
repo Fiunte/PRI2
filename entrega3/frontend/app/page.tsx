@@ -16,7 +16,7 @@ export interface DrugResult {
   score: number
   manufacturer?: string
   product_type?: string
-  route?: string[] 
+  route?: string[]
   therapeutic_category?: string[]
   product_ndc?: string[]
   drug_id?: string
@@ -37,8 +37,8 @@ export interface DrugResult {
 
 export default function Home() {
   const [query, setQuery] = useState("")
-  const [filters, setFilters] = useState<ActiveFilter[]>([]) 
-  const [ignoredFilters, setIgnoredFilters] = useState<string[]>([]) 
+  const [filters, setFilters] = useState<ActiveFilter[]>([])
+  const [ignoredFilters, setIgnoredFilters] = useState<string[]>([])
 
   const [results, setResults] = useState<DrugResult[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -47,9 +47,9 @@ export default function Home() {
 
   // 1. SMART INPUT HANDLER
   const handleSearchInput = (input: string) => {
-    
+
     // A. PRUNE IGNORE LIST
-    const activeIgnoredFilters = ignoredFilters.filter(ignoredAlias => 
+    const activeIgnoredFilters = ignoredFilters.filter(ignoredAlias =>
       input.toLowerCase().includes(ignoredAlias.toLowerCase())
     )
 
@@ -76,36 +76,36 @@ export default function Home() {
   // 2. REMOVE FILTER & RESTORE ALIAS
   const handleRemoveFilter = (filterToRemove: ActiveFilter) => {
     setFilters(prev => prev.filter(f => f !== filterToRemove))
-    
-    if (filterToRemove.matchedAlias) {
-        setIgnoredFilters(prev => [...prev, filterToRemove.matchedAlias])
 
-        setQuery(prevQuery => {
-          const restoredText = filterToRemove.matchedAlias.toLowerCase()
-          // CHANGED: Appended to the end instead of prepended to the start
-          return prevQuery ? `${prevQuery} ${restoredText}` : restoredText
-        })
+    if (filterToRemove.matchedAlias) {
+      setIgnoredFilters(prev => [...prev, filterToRemove.matchedAlias])
+
+      setQuery(prevQuery => {
+        const restoredText = filterToRemove.matchedAlias.toLowerCase()
+        // CHANGED: Appended to the end instead of prepended to the start
+        return prevQuery ? `${prevQuery} ${restoredText}` : restoredText
+      })
     }
   }
 
   // 3. CLEAR ALL
-  const handleClear = () => { 
+  const handleClear = () => {
     setQuery("")
     setFilters([])
     setResults([])
     setHasSearched(false)
-    setIgnoredFilters([]) 
+    setIgnoredFilters([])
   }
 
   // 4. FETCH EFFECT
   useEffect(() => {
     const timeoutId = setTimeout(async () => {
-      
+
       // LOGIC: Only stop/reset if BOTH are empty.
       // If query is "" but filters has items, this block is SKIPPED and search proceeds.
       if (!query.trim() && filters.length === 0) {
         setResults([])
-        setHasSearched(false) 
+        setHasSearched(false)
         return
       }
 
@@ -114,13 +114,13 @@ export default function Home() {
 
       try {
         const params = new URLSearchParams()
-        
+
         // Only append 'query' if it actually has text.
         // If it's empty, we send only 'fq' params.
         if (query.trim()) params.append("query", query)
-        
+
         filters.forEach(f => {
-            params.append("fq", `${f.field}:"${f.value}"`) 
+          params.append("fq", `${f.field}:"${f.value}"`)
         })
 
         // Example URL when filtering only: http://localhost:8000/search?fq=route:"NASAL"
@@ -142,7 +142,7 @@ export default function Home() {
       } finally {
         setIsLoading(false)
       }
-    }, 500) 
+    }, 500)
 
     return () => clearTimeout(timeoutId)
   }, [query, filters])
@@ -157,34 +157,38 @@ export default function Home() {
       </div>
 
       <div className="mx-auto max-w-3xl px-4 py-8">
-        <SearchBar 
-            onSearch={handleSearchInput} 
-            query={query} 
-            activeFilters={filters}
-            onRemoveFilter={handleRemoveFilter}
+        <SearchBar
+          onSearch={handleSearchInput}
+          query={query}
+          activeFilters={filters}
+          onRemoveFilter={handleRemoveFilter}
         />
-        
+
         {isLoading && <LoadingState />}
-        
+
         {!isLoading && hasSearched && (
           <div className="mt-8 animate-fade-in">
-             <div className="mb-4 flex items-center justify-between">
+            <div className="mb-4 flex items-center justify-between">
               <h2 className="text-sm font-medium text-muted-foreground">
                 {results.length} result{results.length !== 1 ? "s" : ""} found
               </h2>
               <button onClick={handleClear} className="text-xs text-muted-foreground hover:text-foreground">Clear</button>
             </div>
-            
-            <SearchResults 
-              results={results} 
-              onSelectResult={setSelectedResult} 
+
+            <SearchResults
+              results={results}
+              onSelectResult={setSelectedResult}
             />
           </div>
         )}
       </div>
 
       {selectedResult && (
-        <DetailModal result={selectedResult} onClose={() => setSelectedResult(null)} />
+        <DetailModal
+          result={selectedResult}
+          onClose={() => setSelectedResult(null)}
+          onSelectResult={setSelectedResult}
+        />
       )}
     </main>
   )

@@ -1,11 +1,11 @@
-\section{Reaching a Hybrid Search Best Model}
+\section{Hybrid Search Model Development}
 \label{sec:hybrid-search-best-model}
 
 This section details the methodology for determining the optimal hybrid search configuration for our pharmaceutical document retrieval system. The approach is divided into two distinct phases, as illustrated in Figure~\ref{fig:hybrid-search-methodology}:
 
 \begin{enumerate}
-  \item \textbf{Best Dense Vector Model Selection}: Evaluating multiple state-of-the-art embedding models using Approximate Nearest Neighbor (ANN) search to identify the most effective dense vector representation.
-  \item \textbf{Optimal Hybrid Weight Tuning}: For the selected dense model, determining the optimal $\alpha$ parameter to balance its contribution against the sparse BM25 retrieval results using Reciprocal Rank Fusion (RRF).
+    \item \textbf{Best Dense Vector Model Selection}: Evaluating multiple state-of-the-art embedding models using Approximate Nearest Neighbor (ANN) search to identify the most effective dense vector representation.
+    \item \textbf{Optimal Hybrid Weight Tuning}: For the selected dense model, determining the optimal $\alpha$ parameter to balance its contribution against the sparse BM25 retrieval results using Reciprocal Rank Fusion (RRF).
 \end{enumerate}
 
 
@@ -23,9 +23,9 @@ Both experimental phases utilize identical infrastructure and evaluation methodo
 Test queries were generated using the DeepSeek-R1 model via the Ollama API. Three distinct user personas were defined to ensure query diversity:
 
 \begin{itemize}
-  \item \textbf{Basic Persona}: Generates short queries (1-3 words) for common drug ailments (10 queries). e.g: "head cold", "mild fever".
-  \item \textbf{Complex Persona}: Produces queries (1-3 words) for chronic medical conditions (5 queries). e.g: "chronic kidney disease", "lower back pain", "diabetes type 2".
-  \item \textbf{Safety Persona}: Creates queries (1-5 words) focusing on drug safety concerns such as pregnancy, addiction, and liver failure (5 queries). e.g "pregnancy drug safety", "liver failure medication", "natural drug alternatives".
+    \item \textbf{Basic Persona}: Generates short queries (1-3 words) for common drug ailments (10 queries). e.g: "head cold", "mild fever".
+    \item \textbf{Complex Persona}: Produces queries (1-3 words) for chronic medical conditions (5 queries). e.g: "chronic kidney disease", "lower back pain", "diabetes type 2".
+    \item \textbf{Safety Persona}: Creates queries (1-5 words) focusing on drug safety concerns such as pregnancy, addiction, and liver failure (5 queries). e.g "pregnancy drug safety", "liver failure medication", "natural drug alternatives".
 \end{itemize}
 
 The LLM generated a total of 20 queries, with JSON parsing and retry logic (3 attempts) ensuring reliable output.
@@ -36,9 +36,9 @@ The LLM generated a total of 20 queries, with JSON parsing and retry logic (3 at
 
 The judgment process:
 \begin{enumerate}
-  \item \textbf{Chunked Processing}: Documents are evaluated in chunks of 5 to manage context window constraints.
-  \item \textbf{Structured Prompting}: The LLM receives document summaries including drug ID, brand name, purpose (truncated to 500 chars), indications (truncated to 1000 chars), and warnings (truncated to 500 chars).
-  \item \textbf{Generous Relevance}: The prompt instructs the model to be generous in judging relevance, including documents that are "somewhat relevant, even if just a little." This is done to prevent previous tests where the LLM would assume any drug that wasnt a first line option as completely non relevant.
+    \item \textbf{Chunked Processing}: Documents are evaluated in chunks of 5 to manage context window constraints.
+    \item \textbf{Structured Prompting}: The LLM receives document summaries including drug ID, brand name, purpose (truncated to 500 chars), indications (truncated to 1000 chars), and warnings (truncated to 500 chars).
+    \item \textbf{Generous Relevance}: The prompt instructs the model to be generous in judging relevance, including documents that are "somewhat relevant, even if just a little." This is done to prevent previous tests where the LLM would assume any drug that wasnt a first line option as completely non relevant.
 \end{enumerate}
 
 \subsubsection{Evaluation Metrics}
@@ -47,17 +47,17 @@ The judgment process:
 The following metrics are computed for all experiments:
 
 \begin{itemize}
-  \item \textbf{Precision at K (P@K)}: For $K \in \{5, 10, 20\}$, measuring the proportion of relevant documents in the top K results.
-  \item \textbf{Mean Average Precision (MAP)}: The mean of average precision scores across all queries, providing a single-figure measure of quality across recall levels.
-  \item \textbf{11-Point Interpolated Precision-Recall Curve}: Standard information retrieval evaluation showing precision at 11 recall levels (0.0, 0.1, ..., 1.0).
+    \item \textbf{Precision at K (P@K)}: For $K \in \{5, 10, 20\}$, measuring the proportion of relevant documents in the top K results.
+    \item \textbf{Mean Average Precision (MAP)}: The mean of average precision scores across all queries, providing a single-figure measure of quality across recall levels.
+    \item \textbf{11-Point Interpolated Precision-Recall Curve}: Standard information retrieval evaluation showing precision at 11 recall levels (0.0, 0.1, ..., 1.0).
 \end{itemize}
 
 \begin{figure}[H]
-  \centering
-  \includegraphics[width=0.4\linewidth]{pipeline.png}
-  \Description{Vertical flowchart describing the general pipeline for both phases, showing query generation, judgment system, and metrics.}
-  \caption{Vertical flowchart describing the general pipeline for both phases}
-  \label{fig:hybrid-search-methodology}
+    \centering
+    \includegraphics[width=0.4\linewidth]{pipeline.png}
+    \Description{Vertical flowchart describing the general pipeline for both phases, showing query generation, judgment system, and metrics.}
+    \caption{Vertical flowchart describing the general pipeline for both phases}
+    \label{fig:hybrid-search-methodology}
 \end{figure}
 
 \subsection{Phase 1: Selecting the Best Dense Vector Model}
@@ -69,18 +69,18 @@ This phase evaluates seven state-of-the-art embedding models to identify the mos
 \label{subsubsec:evaluated-models}
 
 \begin{enumerate}
-  \item \textbf{SBERT (MiniLM-L6-v2)}: A lightweight Sentence-BERT model optimized for semantic similarity tasks. Provides a strong baseline with efficient inference.
+    \item \textbf{SBERT (MiniLM-L6-v2)}: A lightweight Sentence-BERT model optimized for semantic similarity tasks. Provides a strong baseline with efficient inference.
 
-  \item \textbf{Bio\_ClinicalBERT}: A BERT model fine-tuned on clinical notes from MIMIC-III. Specifically designed for clinical text understanding, making it highly relevant for pharmaceutical documents.
+    \item \textbf{Bio\_ClinicalBERT}: A BERT model fine-tuned on clinical notes from MIMIC-III. Specifically designed for clinical text understanding, making it highly relevant for pharmaceutical documents.
 
 
-  \item \textbf{PubMedBERT (NeuML)}: A BERT model pre-trained from scratch on PubMed abstracts and full-text articles. Domain-specific to biomedical literature.
+    \item \textbf{PubMedBERT (NeuML)}: A BERT model pre-trained from scratch on PubMed abstracts and full-text articles. Domain-specific to biomedical literature.
 
-  \item \textbf{SapBERT (PubMedBERT version)}: Specialized for biomedical entity linking, trained with self-alignment contrastive learning on UMLS concepts.
+    \item \textbf{SapBERT (PubMedBERT version)}: Specialized for biomedical entity linking, trained with self-alignment contrastive learning on UMLS concepts.
 
-  \item \textbf{BGE Base (BAAI/bge-base-en-v1.5)}: A general-purpose embedding model optimized for retrieval tasks, supporting instructions and asymmetric search.
+    \item \textbf{BGE Base (BAAI/bge-base-en-v1.5)}: A general-purpose embedding model optimized for retrieval tasks, supporting instructions and asymmetric search.
 
-  \item \textbf{BioBERT Sentence (NLI/STS)}: A BioBERT model fine-tuned on multiple Natural Language Inference and Semantic Textual Similarity datasets, enhancing its understanding of biomedical text relationships.
+    \item \textbf{BioBERT Sentence (NLI/STS)}: A BioBERT model fine-tuned on multiple Natural Language Inference and Semantic Textual Similarity datasets, enhancing its understanding of biomedical text relationships.
 \end{enumerate}
 
 \subsubsection{Implementation Details}
@@ -89,49 +89,49 @@ This phase evaluates seven state-of-the-art embedding models to identify the mos
 The evaluation pipeline, implemented in Python, follows these steps:
 
 \begin{enumerate}
-  \item \textbf{Document Processing}: Each drug document is converted to a searchable text format combining brand name, generic name, purpose, indications and usage, active ingredients, and truncated warnings.
+    \item \textbf{Document Processing}: Each drug document is converted to a searchable text format combining brand name, generic name, purpose, indications and usage, active ingredients, and truncated warnings.
 
-  \item \textbf{Vector Generation}: Models are loaded with GPU optimization where available, with batch processing (batch size 128-512 depending on model) and memory management to handle  VRAM constraints of loading so many models at the same time.
+    \item \textbf{Vector Generation}: Models are loaded with GPU optimization where available, with batch processing (batch size 128-512 depending on model) and memory management to handle  VRAM constraints of loading so many models at the same time.
 
-  \item \textbf{Solr Indexing}: Vectors are indexed in Apache Solr using the HNSW algorithm for efficient approximate nearest neighbor search with the following configuration:
-        \begin{itemize}
-          \item \texttt{efConstruction}: 200
-          \item \texttt{M}: 16
-          \item Distance function: Euclidean
-        \end{itemize}
+    \item \textbf{Solr Indexing}: Vectors are indexed in Apache Solr using the HNSW algorithm for efficient approximate nearest neighbor search with the following configuration:
+          \begin{itemize}
+              \item \texttt{efConstruction}: 200
+              \item \texttt{M}: 16
+              \item Distance function: Euclidean
+          \end{itemize}
 
-  \item \textbf{Search Execution}: For each query, the top $K=20$ documents are retrieved using ANN search.
+    \item \textbf{Search Execution}: For each query, the top $K=20$ documents are retrieved using ANN search.
 \end{enumerate}
 
 \subsubsection{Results and Analysis}
 \label{subsubsec:phase1-results}
 
 \begin{table}[htbp]
-  \centering
-  \caption{Performance comparison of dense vector models. Values show mean ± standard deviation across 20 queries.}
-  \label{tab:dense-model-results}
-  \begin{adjustbox}{width=\columnwidth}
-    \begin{tabular}{lcccc}
-      \hline
-      \textbf{Model}    & \textbf{P@5}      & \textbf{P@10}     & \textbf{P@20}     & \textbf{MAP}      \\
-      \hline
-      SBERT             & 0.920 $\pm$ 0.214 & 0.860 $\pm$ 0.180 & 0.895 $\pm$ 0.152 & 0.198 $\pm$ 0.071 \\
-      Bio\_ClinicalBERT & 0.770 $\pm$ 0.312 & 0.730 $\pm$ 0.217 & 0.733 $\pm$ 0.204 & 0.137 $\pm$ 0.062 \\
-      PubMedBERT        & 0.940 $\pm$ 0.180 & 0.950 $\pm$ 0.153 & 0.935 $\pm$ 0.125 & 0.214 $\pm$ 0.059 \\
-      SAPBERT\_PubMed   & 0.920 $\pm$ 0.147 & 0.845 $\pm$ 0.216 & 0.893 $\pm$ 0.158 & 0.193 $\pm$ 0.064 \\
-      BGE               & 0.970 $\pm$ 0.071 & 0.940 $\pm$ 0.097 & 0.925 $\pm$ 0.070 & 0.209 $\pm$ 0.046 \\
-      BioBERT\_Sentence & 0.900 $\pm$ 0.195 & 0.890 $\pm$ 0.170 & 0.902 $\pm$ 0.121 & 0.197 $\pm$ 0.054 \\
-      \hline
-    \end{tabular}
-  \end{adjustbox}
+    \centering
+    \caption{Performance comparison of dense vector models. Values show mean ± standard deviation across 20 queries.}
+    \label{tab:dense-model-results}
+    \begin{adjustbox}{width=\columnwidth}
+        \begin{tabular}{lcccc}
+            \hline
+            \textbf{Model}    & \textbf{P@5}      & \textbf{P@10}     & \textbf{P@20}     & \textbf{MAP}      \\
+            \hline
+            SBERT             & 0.920 $\pm$ 0.214 & 0.860 $\pm$ 0.180 & 0.895 $\pm$ 0.152 & 0.198 $\pm$ 0.071 \\
+            Bio\_ClinicalBERT & 0.770 $\pm$ 0.312 & 0.730 $\pm$ 0.217 & 0.733 $\pm$ 0.204 & 0.137 $\pm$ 0.062 \\
+            PubMedBERT        & 0.940 $\pm$ 0.180 & 0.950 $\pm$ 0.153 & 0.935 $\pm$ 0.125 & 0.214 $\pm$ 0.059 \\
+            SAPBERT\_PubMed   & 0.920 $\pm$ 0.147 & 0.845 $\pm$ 0.216 & 0.893 $\pm$ 0.158 & 0.193 $\pm$ 0.064 \\
+            BGE               & 0.970 $\pm$ 0.071 & 0.940 $\pm$ 0.097 & 0.925 $\pm$ 0.070 & 0.209 $\pm$ 0.046 \\
+            BioBERT\_Sentence & 0.900 $\pm$ 0.195 & 0.890 $\pm$ 0.170 & 0.902 $\pm$ 0.121 & 0.197 $\pm$ 0.054 \\
+            \hline
+        \end{tabular}
+    \end{adjustbox}
 \end{table}
 
 \begin{figure}[htbp]
-  \centering
-  \includegraphics[width=1.0\linewidth]{precision_recall_curve_11pt_avg_only.png}
-  \Description{11-point interpolated precision-recall curve comparing multiple dense vector models. PubMedBERT consistently achieves higher precision across all recall levels.}
-  \caption{Precision–Recall curve (11-point averaged)}
-  \label{fig:pr_curve_11pt_dense}
+    \centering
+    \includegraphics[width=1.0\linewidth]{precision_recall_curve_11pt_avg_only.png}
+    \Description{11-point interpolated precision-recall curve comparing multiple dense vector models. PubMedBERT consistently achieves higher precision across all recall levels.}
+    \caption{Precision–Recall curve (11-point averaged)}
+    \label{fig:pr_curve_11pt_dense}
 \end{figure}
 
 
@@ -151,7 +151,7 @@ With PubMedBERT identified as the optimal dense model, this phase determines the
 The hybrid search employs Reciprocal Rank Fusion (RRF) with the scoring function:
 
 \[
-  \text{score}(d) = \alpha \cdot \text{RRF}_{\text{vector}}(d) + (1 - \alpha) \cdot \text{RRF}_{\text{BM25}}(d)
+    \text{score}(d) = \alpha \cdot \text{RRF}_{\text{vector}}(d) + (1 - \alpha) \cdot \text{RRF}_{\text{BM25}}(d)
 \]
 
 where $\text{RRF}(d) = \frac{1}{k + \text{rank}(d)}$ with $k = 20$.
@@ -163,9 +163,9 @@ The choice of $k=20$ reflects our focus on top results: we typically care about 
 
 BM25 was selected for sparse retrieval due to:
 \begin{itemize}
-  \item \textbf{Superiority over TF-IDF}: BM25 addresses TF-IDF's limitations in term frequency saturation and document length normalization.
-  \item \textbf{Proven Effectiveness}: Extensive research demonstrates BM25's strong performance in information retrieval tasks.
-  \item \textbf{Term-Based Matching}: Provides complementary signals to semantic vector search, capturing exact term matches and phrase importance.
+    \item \textbf{Superiority over TF-IDF}: BM25 addresses TF-IDF's limitations in term frequency saturation and document length normalization.
+    \item \textbf{Proven Effectiveness}: Extensive research demonstrates BM25's strong performance in information retrieval tasks.
+    \item \textbf{Term-Based Matching}: Provides complementary signals to semantic vector search, capturing exact term matches and phrase importance.
 \end{itemize}
 
 The BM25 search uses the same document text representation as vector models, indexed in Solr with standard text analysis (lowercasing, stemming, stopword removal).
@@ -175,7 +175,7 @@ The BM25 search uses the same document text representation as vector models, ind
 
 We evaluated $\alpha$ values from 0.30 to 0.70 in 0.10 increments:
 \[
-  \alpha \in \{0.30, 0.40, 0.50, 0.60, 0.70\}
+    \alpha \in \{0.30, 0.40, 0.50, 0.60, 0.70\}
 \]
 
 This range tests configurations from BM25-dominated ($\alpha=0.30$) to vector-dominated ($\alpha=0.70$) hybrid search, with equal weighting at $\alpha=0.50$.
@@ -184,22 +184,22 @@ This range tests configurations from BM25-dominated ($\alpha=0.30$) to vector-do
 \label{subsubsec:phase2-results}
 
 \begin{table}[htbp]
-  \centering
-  \caption{Hybrid search performance across $\alpha$ values. PubMedBERT + BM25 with RRF ($k=20$).}
-  \label{tab:hybrid-alpha-results}
-  \begin{adjustbox}{width=\columnwidth}
-    \begin{tabular}{lcccc}
-      \hline
-      \textbf{$\alpha$} & \textbf{P@5}      & \textbf{P@10}     & \textbf{P@20}     & \textbf{MAP}      \\
-      \hline
-      0.30              & 0.950 $\pm$ 0.124 & 0.975 $\pm$ 0.062 & 0.933 $\pm$ 0.112 & 0.508 $\pm$ 0.093 \\
-      0.40              & 0.950 $\pm$ 0.124 & 0.975 $\pm$ 0.062 & 0.970 $\pm$ 0.083 & 0.530 $\pm$ 0.084 \\
-      0.50              & 0.960 $\pm$ 0.102 & 0.970 $\pm$ 0.064 & 0.975 $\pm$ 0.040 & 0.533 $\pm$ 0.049 \\
-      0.60              & 0.980 $\pm$ 0.060 & 0.980 $\pm$ 0.051 & 0.965 $\pm$ 0.069 & 0.529 $\pm$ 0.053 \\
-      0.70              & 0.980 $\pm$ 0.060 & 0.980 $\pm$ 0.051 & 0.950 $\pm$ 0.105 & 0.522 $\pm$ 0.064 \\
-      \hline
-    \end{tabular}
-  \end{adjustbox}
+    \centering
+    \caption{Hybrid search performance across $\alpha$ values. PubMedBERT + BM25 with RRF ($k=20$).}
+    \label{tab:hybrid-alpha-results}
+    \begin{adjustbox}{width=\columnwidth}
+        \begin{tabular}{lcccc}
+            \hline
+            \textbf{$\alpha$} & \textbf{P@5}      & \textbf{P@10}     & \textbf{P@20}     & \textbf{MAP}      \\
+            \hline
+            0.30              & 0.950 $\pm$ 0.124 & 0.975 $\pm$ 0.062 & 0.933 $\pm$ 0.112 & 0.508 $\pm$ 0.093 \\
+            0.40              & 0.950 $\pm$ 0.124 & 0.975 $\pm$ 0.062 & 0.970 $\pm$ 0.083 & 0.530 $\pm$ 0.084 \\
+            0.50              & 0.960 $\pm$ 0.102 & 0.970 $\pm$ 0.064 & 0.975 $\pm$ 0.040 & 0.533 $\pm$ 0.049 \\
+            0.60              & 0.980 $\pm$ 0.060 & 0.980 $\pm$ 0.051 & 0.965 $\pm$ 0.069 & 0.529 $\pm$ 0.053 \\
+            0.70              & 0.980 $\pm$ 0.060 & 0.980 $\pm$ 0.051 & 0.950 $\pm$ 0.105 & 0.522 $\pm$ 0.064 \\
+            \hline
+        \end{tabular}
+    \end{adjustbox}
 \end{table}
 
 
@@ -209,11 +209,11 @@ Table~\ref{tab:hybrid-alpha-results} demonstrates the substantial performance ga
 
 
 \begin{figure}[htbp]
-  \centering
-  \includegraphics[width=1.0\linewidth]{precision_recall_curve_hybrid_alpha_compare.png}
-  \Description{Precision-recall curve comparing different alpha values for hybrid search. An alpha of 0.50 performs best across most recall levels.}
-  \caption{Precision–Recall curve (11-point averaged)}
-  \label{fig:pr_curve_11pt_hybrid}
+    \centering
+    \includegraphics[width=1.0\linewidth]{precision_recall_curve_hybrid_alpha_compare.png}
+    \Description{Precision-recall curve comparing different alpha values for hybrid search. An alpha of 0.50 performs best across most recall levels.}
+    \caption{Precision–Recall curve (11-point averaged)}
+    \label{fig:pr_curve_11pt_hybrid}
 \end{figure}
 
 
@@ -233,11 +233,11 @@ This two-phase investigation successfully identified an optimal hybrid search co
 Following the identification of the optimal hybrid search configuration (PubMedBERT with BM25 at $\alpha=0.50$), we developed a comprehensive web-based frontend to showcase the system's capabilities and provide an intuitive interface for end-users. The frontend serves dual purposes: it functions as a production-ready search interface for medical professionals while simultaneously demonstrating the effectiveness of our retrieval system through transparent result presentation.
 
 \begin{figure}[htbp]
-  \centering
-  \includegraphics[width=1.0\linewidth]{frontend1.png}
-  \Description{Screenshot of the search interface in its idle state, showing a clean search bar and navigation elements.}
-  \caption{Idle Interface}
-  \label{fig:frontend_idle}
+    \centering
+    \includegraphics[width=1.0\linewidth]{frontend1.png}
+    \Description{Screenshot of the search interface in its idle state, showing a clean search bar and navigation elements.}
+    \caption{Idle Interface}
+    \label{fig:frontend_idle}
 \end{figure}
 
 
@@ -249,46 +249,46 @@ To improve search precision, the frontend implements a sophisticated client-side
 \paragraph{Discovery of Key Filters}
 Through analysis of the database and running scripts to examine which categorical fields were worth filtering, three primary categories were identified:
 \begin{itemize}
-  \item \textbf{Route of administration} (e.g., oral, intravenous)
-  \item \textbf{Therapeutic category} (e.g., Analgesics, Antivirals)
-  \item \textbf{Product type} (e.g., HUMAN OTC DRUG, HUMAN PRESCRIPTION DRUG)
+    \item \textbf{Route of administration} (e.g., oral, intravenous)
+    \item \textbf{Therapeutic category} (e.g., Analgesics, Antivirals)
+    \item \textbf{Product type} (e.g., HUMAN OTC DRUG, HUMAN PRESCRIPTION DRUG)
 \end{itemize}
 
 \paragraph{Handling Aliases and Variations}
 To improve matching accuracy, several strategies were implemented:
 
 \begin{itemize}
-  \item \textbf{Singular and Plural Forms:} Many therapeutic categories are plural (e.g., ``Analgesics''), so singular versions were added to the lookup to match queries like ``analgesic.''
+    \item \textbf{Singular and Plural Forms:} Many therapeutic categories are plural (e.g., ``Analgesics''), so singular versions were added to the lookup to match queries like ``analgesic.''
 
-  \item \textbf{User-Friendly Aliases for Product Types:} Product type names are often long and unintuitive (e.g., ``HUMAN OTC DRUG''). To accommodate natural language queries, aliases were added:
-        \begin{itemize}
-          \item ``HUMAN OTC DRUG'' $\to$ [``otc'', ``shelf'', ``over the counter'', ``generic'', ``generical'']
-          \item ``HUMAN PRESCRIPTION DRUG'' $\to$ [``prescription'', ``prescribed'', ``rx'', ``script'']
-        \end{itemize}
+    \item \textbf{User-Friendly Aliases for Product Types:} Product type names are often long and unintuitive (e.g., ``HUMAN OTC DRUG''). To accommodate natural language queries, aliases were added:
+          \begin{itemize}
+              \item ``HUMAN OTC DRUG'' $\to$ [``otc'', ``shelf'', ``over the counter'', ``generic'', ``generical'']
+              \item ``HUMAN PRESCRIPTION DRUG'' $\to$ [``prescription'', ``prescribed'', ``rx'', ``script'']
+          \end{itemize}
 
-  \item \textbf{Synonyms for Routes and Therapeutic Categories:} Common synonyms and related terms were included to capture user intent. Examples include:
-        \begin{itemize}
-          \item Routes: ``mouth'' $\to$ ``oral'', ``nose'' $\to$ ``nasal'', ``iv'' $\to$ ``intravenous'', ``im'' $\to$ ``intramuscular''
-          \item Therapeutic categories: ``anxiety'' $\to$ ``Anxiolytics'', ``virus'' $\to$ ``Antivirals'', ``pain'' $\to$ ``Analgesics''
-        \end{itemize}
+    \item \textbf{Synonyms for Routes and Therapeutic Categories:} Common synonyms and related terms were included to capture user intent. Examples include:
+          \begin{itemize}
+              \item Routes: ``mouth'' $\to$ ``oral'', ``nose'' $\to$ ``nasal'', ``iv'' $\to$ ``intravenous'', ``im'' $\to$ ``intramuscular''
+              \item Therapeutic categories: ``anxiety'' $\to$ ``Anxiolytics'', ``virus'' $\to$ ``Antivirals'', ``pain'' $\to$ ``Analgesics''
+          \end{itemize}
 \end{itemize}
 
 \paragraph{Implementation}
 The \texttt{extractFilterFromQuery} function scans user input for these canonical terms, singular/plural variants, and aliases. When a match is found:
 \begin{itemize}
-  \item The matched term is removed from the query string.
-  \item A structured filter object is created containing the canonical category, the matched alias, and a display value.
-  \item The user sees the parsed filters as ``chips'' or tags in the interface, providing immediate feedback that the system correctly interpreted their intent.
+    \item The matched term is removed from the query string.
+    \item A structured filter object is created containing the canonical category, the matched alias, and a display value.
+    \item The user sees the parsed filters as ``chips'' or tags in the interface, providing immediate feedback that the system correctly interpreted their intent.
 \end{itemize}
 
 This multi-layered approach ensures that user searches are both intuitive and precise, minimizing irrelevant results and improving the overall user experience in the drug discovery application.
 
 \begin{figure}[htbp]
-  \centering
-  \includegraphics[width=1\linewidth]{frontend5.png}
-  \Description{Screenshot showing query results where 'oral nsaid otc' is automatically converted into structured filters for route, category, and product type.}
-  \caption{Example query results showcasing Query Rewriting and Smart Filtering (typing "oral nsaid otc" is rewritten to the following fq solr filters)}
-  \label{fig:frontend_query_rewrite}
+    \centering
+    \includegraphics[width=1\linewidth]{frontend5.png}
+    \Description{Screenshot showing query results where 'oral nsaid otc' is automatically converted into structured filters for route, category, and product type.}
+    \caption{Example query results showcasing Query Rewriting and Smart Filtering (typing "oral nsaid otc" is rewritten to the following fq solr filters)}
+    \label{fig:frontend_query_rewrite}
 \end{figure}
 
 \subsection{Results Clustering}
@@ -296,21 +296,21 @@ This multi-layered approach ensures that user searches are both intuitive and pr
 Medical databases often contain numerous entries for the same drug active ingredient (e.g., hundreds of brands of Ibuprofen). To prevent result flooding and improve navigability, the system implements result clustering based on the Unique Ingredient Identifier (UNII).
 
 \begin{itemize}
-  \item \textbf{Backend Grouping:} The backend groups raw Solr results by their UNII set. If multiple products share the exact same active ingredients, they are collapsed into a single "Cluster" object.
+    \item \textbf{Backend Grouping:} The backend groups raw Solr results by their UNII set. If multiple products share the exact same active ingredients, they are collapsed into a single "Cluster" object.
 
-  \item \textbf{Scoring:} The relevance score of a cluster is determined by the highest-scoring individual variant within it, ensuring that the most relevant grouping appears at the top.
+    \item \textbf{Scoring:} The relevance score of a cluster is determined by the highest-scoring individual variant within it, ensuring that the most relevant grouping appears at the top.
 
-  \item \textbf{Frontend Representation:} In the user interface, clusters are visually distinct from single drug results. They display a badge indicating the number of variants (e.g., "12 Variants found").
+    \item \textbf{Frontend Representation:} In the user interface, clusters are visually distinct from single drug results. They display a badge indicating the number of variants (e.g., "12 Variants found").
 
-  \item \textbf{Interaction:} Clicking on a cluster triggers a "drill-down" view (\texttt{activeCluster} state), replacing the main list with the specific variants contained within that group. This allows users to first find the correct drug ingredient and then select the specific manufacturer or dosage form.
+    \item \textbf{Interaction:} Clicking on a cluster triggers a "drill-down" view (\texttt{activeCluster} state), replacing the main list with the specific variants contained within that group. This allows users to first find the correct drug ingredient and then select the specific manufacturer or dosage form.
 \end{itemize}
 
 \begin{figure}[htbp]
-  \centering
-  \includegraphics[width=1\linewidth]{frontend3.png}
-  \Description{Screenshot of search results grouped by cluster, showing multiple variants of a drug under a single ingredient heading.}
-  \caption{Example of search results inside a cluster}
-  \label{fig:frontend_cluster}
+    \centering
+    \includegraphics[width=1\linewidth]{frontend3.png}
+    \Description{Screenshot of search results grouped by cluster, showing multiple variants of a drug under a single ingredient heading.}
+    \caption{Example of search results inside a cluster}
+    \label{fig:frontend_cluster}
 \end{figure}
 
 \subsection{Semantic Snippet Generation}
@@ -318,39 +318,49 @@ Medical databases often contain numerous entries for the same drug active ingred
 To explain \textit{why} a specific result was retrieved—especially for vector-based semantic searches where keywords might not visually match—the system generates context-aware snippets. (e.g., displaying "...relief of mild to moderate pain..." for a search query of "headache").
 
 \begin{itemize}
-  \item \textbf{Vector-Based Highlighting:} Standard keyword highlighting fails when the match is semantic (e.g., query "pain" matches text "analgesic"). Instead, the backend uses the SBERT model to compare the user's query vector against individual sentences within the drug's description fields (Purpose, Indications).
+    \item \textbf{Vector-Based Highlighting:} Standard keyword highlighting fails when the match is semantic (e.g., query "pain" matches text "analgesic"). Instead, the backend uses the SBERT model to compare the user's query vector against individual sentences within the drug's description fields (Purpose, Indications).
 
-  \item \textbf{Batch Processing:} To maintain performance, snippet generation is batched. The backend collects candidate sentences from the top retrieved documents and encodes them in a single inference pass.
+    \item \textbf{Batch Processing:} To maintain performance, snippet generation is batched. The backend collects candidate sentences from the top retrieved documents and encodes them in a single inference pass.
 
-  \item \textbf{Thresholding:} Only sentences with a high cosine similarity score ($>0.4$) to the query are returned as snippets. Because of this, some search results don't have semantic snippets at all.
+    \item \textbf{Thresholding:} Only sentences with a high cosine similarity score ($>0.4$) to the query are returned as snippets. Because of this, some search results don't have semantic snippets at all.
 
 \end{itemize}
 
 \begin{figure}[htbp]
-  \centering
-  \includegraphics[width=1\linewidth]{frontend2.png}
-  \Description{Screenshot showing search results with semantic snippets highlighted, explaining why the result matched the query.}
-  \caption{Example of several snippet generations}
-  \label{fig:frontend_snippet}
+    \centering
+    \includegraphics[width=1\linewidth]{frontend2.png}
+    \Description{Screenshot showing search results with semantic snippets highlighted, explaining why the result matched the query.}
+    \caption{Example of several snippet generations}
+    \label{fig:frontend_snippet}
+\end{figure}
+
+
+\subsection{Relevance Feedback: More Like This}
+
+To further enhance search precision, we implemented an explicit relevance feedback mechanism. When viewing a drug's details, users can request "Similar Drugs". This triggers a Solr MoreLikeThis (MLT) query using the current document's key fields (Purpose, Indications, Active Ingredients) as the seed. This feature allows users to pivot from a single relevant result to a broader set of related medications without manually refining their query keywords, effectively satisfying the project's suggestion for relevance feedback.
+
+
+\subsection{External Data Linking: PubChem Integration}
+
+To fulfill the objective of enriching the system with external data sources, we integrated dynamic linking to the PubChem database. Rather than statically importing massive image datasets, we implemented a real-time integration using the PubChem PUG REST API. When a user views a drug's details, the frontend dynamically fetches the 2D chemical structure image using the drug's \texttt{generic\_name} as the key. This approach significantly enhances the user experience by providing immediate visual context for chemical compounds without the overhead of local storage.
+
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\linewidth]{frontend6.png}
+    \Description{Screenshot of the detail modal view, displaying comprehensive structure data for a specific drug.}
+    \caption{Showcase of DetailModel}
+    \label{fig:frontend_detail_modal}
 \end{figure}
 
 \subsection{User Interface Components}
 
-The application is composed of three main modular components to ensure maintainability and responsiveness:
+The application is composed of three main modular components to eansure maintainability and responsiveness:
 
 \begin{itemize}
-  \item \textbf{SearchBar:} Handles the real-time parsing of input and display of active filters.
+    \item \textbf{SearchBar:} Handles the real-time parsing of input and display of active filters.
 
-  \item \textbf{SearchResults:} Renders the list of drugs and clusters, managing the transition between the main list view and the cluster drill-down view.
+    \item \textbf{SearchResults:} Renders the list of drugs and clusters, managing the transition between the main list view and the cluster drill-down view.
 
-  \item \textbf{DetailModal:} Provides a comprehensive view of a selected drug's structured data (active ingredients, dosage, warnings, etc.) without navigating away from the search context.
+    \item \textbf{DetailModal:} Provides a comprehensive view of a selected drug's structured data (active ingredients, dosage, warnings, etc.) without navigating away from the search context.
 \end{itemize}
-
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=1\linewidth]{frontend4.png}
-  \Description{Screenshot of the detail modal view, displaying comprehensive structure data for a specific drug.}
-  \caption{Showcase of DetailModel}
-  \label{fig:frontend_detail_modal}
-\end{figure}

@@ -90,43 +90,44 @@ def calculate_average_precision(qrels_for_query, run_for_query):
 
 def calculate_interpolated_pr(qrels_for_query, run_for_query):
     """
-    Calculates interpolated Precision-Recall data points for plotting.
+    Calculates standard 11-point Interpolated Precision-Recall (0.0, 0.1, ... 1.0).
     Returns: (recalls_list, precisions_list)
     """
     total_relevant = sum(1 for rel in qrels_for_query.values() if rel > 0)
     if total_relevant == 0:
-        return [0, 1], [0, 0]
+        return [i/10.0 for i in range(11)], [0.0]*11
 
-    # 1. Calculate raw (Recall, Precision) points
-    raw_points = []
+    # 1. Get all (recall, precision) points
+    # We include (0,0) and limits to ensure robustness
+    points = []
     relevant_found = 0
-
+    
     for rank, doc_id in enumerate(run_for_query, start=1):
         if qrels_for_query.get(doc_id, 0) > 0:
             relevant_found += 1
             precision = relevant_found / rank
             recall = relevant_found / total_relevant
-            raw_points.append((recall, precision))
+            points.append((recall, precision))
 
-    if not raw_points:
-        return [0, 1], [0, 0]
+    if not points:
+        return [i/10.0 for i in range(11)], [0.0]*11
 
-    # 2. Add start point (Recall=0) and sort
-    raw_points.append((0, raw_points[0][1]))
-    raw_points.sort(key=lambda x: x[0])
+    # 2. Define the 11 standard recall levels
+    standard_recalls = [i/10.0 for i in range(11)]
+    interpolated_precisions = []
 
-    recalls = [p[0] for p in raw_points]
-    precisions = [p[1] for p in raw_points]
-
-    # 3. Interpolation: P(r) = max(P(r')) for all r' >= r
-    running_max = 0
-    for i in range(len(precisions) - 1, -1, -1):
-        if precisions[i] > running_max:
-            running_max = precisions[i]
+    # 3. Calculate interpolated precision for each level
+    # P_interp(r) = max(P(r')) for all r' >= r
+    for r_level in standard_recalls:
+        # Find all points with recall >= r_level
+        valid_precisions = [p for r, p in points if r >= r_level]
+        if valid_precisions:
+            max_p = max(valid_precisions)
         else:
-            precisions[i] = running_max
+            max_p = 0.0
+        interpolated_precisions.append(max_p)
 
-    return recalls, precisions
+    return standard_recalls, interpolated_precisions
 
 # --- Main Execution ---
 
@@ -199,7 +200,7 @@ def main():
 
             # 2. Calculate and Plot PR Curve
             recalls, precisions = calculate_interpolated_pr(qrels_q, run_q)
-            plt.plot(recalls, precisions, label=f"{sys_name} (AP={ap:.2f})", linewidth=2)
+            plt.step(recalls, precisions, label=f"{sys_name} (AP={ap:.2f})", where='post', linewidth=2)
 
         # Finalize and Save Plot
         plt.xlabel('Recall')
@@ -210,7 +211,7 @@ def main():
         plt.xlim([0.0, 1.0])
         plt.ylim([0.0, 1.05])
 
-        plot_filename = f"pr_curve_{q_id}.png"
+        plot_filename = "report/images/pr_curve.png"
         plt.savefig(plot_filename)
         plt.close()
         print(f"\n✅ Comparison plot saved to: {plot_filename}")

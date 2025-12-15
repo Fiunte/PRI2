@@ -6,7 +6,7 @@ Drug labeling data represents one of the most information-rich and complex resou
 The dataset analyzed in this work was created using the OpenFDA API, a public data service provided by the U.S. Food and Drug Administration (FDA)~\cite{openfdaapi,acm_openfda}. This API grants access to thousands of official drug label submissions, which were programmatically extracted and combined into a single, cleaned dataset~\cite{openfdaapi,fda_fdalabel,frontiers_extraction}. Each entry represents a specific drug or drug product, identified by unique codes such as \texttt{product\_ndc}, \texttt{package\_ndc}, and \texttt{set\_id}. The dataset also includes descriptors such as \texttt{therapeutic\_category} and \texttt{brand\_name}, along with free-text fields like \texttt{indications\allowbreak\_and\allowbreak\_usage}, \texttt{dosage\allowbreak\_and\allowbreak\_administration}, and \texttt{warnings}~\cite{frontiers_extraction,liu_dli}.
 
 
-After extraction, the data were standardized to ensure consistency and to handle incomplete or missing fields~\cite{liu_dli,nature_fdalabel}. The resulting collection retains both structured and unstructured information, making it a valuable foundation for building information retrieval systems in later phases~\cite{fang2016druglabel,nature_fdalabel}.
+After extraction, the data were standardized to ensure consistency and to handle incomplete or missing fields~\cite{liu_dli,nature_fdalabel}. The resulting collection retains both structured and unstructured information, forming the foundation for the information retrieval system presented in this report~\cite{fang2016druglabel,nature_fdalabel}.
 
 
 \section{Data Source Authority and Quality}
@@ -170,8 +170,8 @@ The dataset supports several information retrieval scenarios:
   \item \textbf{Trend Analysis for Therapeutic Categories:} Search for trends in drug products and active ingredients associated with a specific health problem or therapeutic category. For example, ``what active ingredients are most commonly used in medications for diabetes'' or ``how has the choice of therapeutic class changed for hypertension drugs in recent years''.
 \end{itemize}
 
-\subsection{Characterization of Follow-up Information Needs}
-In future work, these information needs will guide the design and evaluation of IR experiments using the dataset. Planned directions include:
+\subsection{Implications for Retrieval Design}
+These information needs guided the design and evaluation of the IR experiments described in the subsequent sections. Key focus areas included:
 
 \begin{itemize}
   \item \textbf{Retrieval Evaluation:} Measuring precision and recall for category-based and ingredient-based queries, using different Solr configurations.

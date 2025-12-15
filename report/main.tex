@@ -57,12 +57,12 @@
 % --- Document ---
 \begin{document}
 
-\title[Drug Label Dataset: Information Retrieval System and Evaluation]{%
-  Drug Label Dataset: Information Retrieval System and Evaluation
+\title[Enhancing Pharmaceutical Discovery: A Hybrid Information Retrieval System for Drug Labels]{%
+  Enhancing Pharmaceutical Discovery: A Hybrid Information Retrieval System for Drug Labels
 }
 
 \begin{abstract}
-  This report presents the development of an information retrieval system for a comprehensive drug label dataset built from the OpenFDA API. The project encompasses the entire pipeline, from data preparation and characterization to the implementation and evaluation of a Solr-based search engine. The dataset integrates structured identifiers and unstructured text, supporting rich retrieval tasks. Two distinct retrieval setups were implemented and assessed through manual evaluation, demonstrating the system's effectiveness. The report concludes with an analysis of retrieval performance and outlines directions for future enhancements.
+  This report presents the design and implementation of a comprehensive pharmaceutical information retrieval system. The project follows a structured development pipeline, beginning with the ingestion and cleaning of the OpenFDA drug label dataset to establish a reliable domain-specific corpus. Building on this foundation, we developed a search engine using Apache Solr, evaluating various indexing strategies and field-based relevance models. To overcome the limitations of keyword-based retrieval, we implemented a hybrid search architecture that combines sparse BM25 signals with dense vector representations from PubMedBERT, optimizing the fusion via Reciprocal Rank Fusion (RRF). The system is accessible through a modern web interface featuring smart query rewriting, result clustering, and real-time visualization of chemical structures. This work demonstrates the effective integration of traditional information retrieval techniques with state-of-the-art neural models to enhance discovery in the biomedical domain.
 \end{abstract}
 
 \begin{CCSXML}
@@ -96,8 +96,12 @@
 % =============================
 \input{sections/content_advanced.tex}
 
+% =============================
+% Part 4: Conclusion
+% =============================
+\input{sections/conclusion}
+
 \clearpage
-% (End of Content)
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{bib/references}

@@ -81,3 +81,39 @@
     * Manual evaluation description.
     * Precision metrics (P@, MAP) and P-R curves.
     * [cite_start]Discussion of results[cite: 133].
+
+---
+
+## 6. Current Implementation Status (as of Dec 15)
+
+### Completed / Implemented
+#### Milestone 1 (Data Prep)
+*   **Data Pipeline:** Complete pipeline for OpenFDA and DrugBank data.
+*   **Report:** `sections/content_preparation.tex` covers Data Sources, Collection, Characterization.
+
+#### Milestone 2 (Retrieval)
+*   **Solr Indexing:** Standard fields indexed.
+*   **Retrieval Setups:** Analyzed and implemented.
+*   **Report:** `sections/content_retrieval.tex` covers Indexing and Basic Retrieval.
+
+#### Milestone 3 (Advanced Search & UI)
+*   **Evaluation Framework:** Automated evaluation using `DeepSeek-R1` (via Ollama) acting as a judge ("Generous Relevance").
+*   **Embeddings & Hybrid Search:**
+    *   **Phase 1:** Evaluated 6 dense models (SBERT, Bio_ClinicalBERT, PubMedBERT, etc.).
+    *   **Selection:** PubMedBERT selected (Highest MAP).
+    *   **Phase 2:** Hybrid Search (PubMedBERT + BM25) with Reciprocal Rank Fusion (RRF).
+    *   **Tuning:** Alpha=0.5 selected as optimal.
+*   **Frontend (UI):**
+    *   **Stack:** React/Vite (likely, based on file structure).
+    *   **Features:** SearchBar, SearchResults, DetailModal.
+    *   **Smart Filtering:** Client-side query rewriting (Route, Therapeutic Class, Product Type) with alias handling.
+    *   **Clustering:** Result clustering by UNII (Active Ingredient).
+    *   **Semantic Snippets:** SBERT-based snippet generation for explanation.
+*   **Report:** `sections/content_advanced.tex` details Hybrid Search, Methodology, and Frontend features.
+
+### Missing / To Do
+*   **Global Conclusion:** `main.tex` and included files lack a final Conclusion section summarizing the whole project.
+*   **Abstract Update:** The abstract in `main.tex` currently focuses on M1/M2. Needs update to mention Hybrid Search and UI.
+*   **Video Presentation:** "A video presentation of the project is required" (Not found in files).
+*   **Submission Packaging:** Need to generate `demo-gg.pdf` (Slides?), `report-gg.pdf`, and `code-gg.zip`.
+*   **Final Review:** Verification of page limits (Max 12 pages) and formatting.

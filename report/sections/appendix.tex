@@ -78,3 +78,45 @@ The following copy-field definitions were applied via \texttt{copy\_fields.json}
   ]
 }
 \end{minted}
+\section{Relevance Judgment Criteria}
+\label{appendix:relevance-criteria}
+
+The specific instruction prompt used for the manual/AI-assisted relevance evaluation (Section~\ref{sec:example-setup}) is defined as follows:
+
+\begin{quote}
+  \textit{Assign a binary relevance score of 1 (Relevant) or 0 (Irrelevant) to the provided document based on the following specific user need: A pregnant woman requires a safe, oral, over-the-counter (OTC) medication for fever or headache, with product information updated between 2023 and 2025.}
+
+  \textit{To be marked Relevant (1), the document must satisfy all five conditions:}
+  \begin{itemize}
+    \item \textit{Explicitly indicates treatment for fever or headache.}
+    \item \textit{Specifies an oral administration route (e.g., tablet, liquid).}
+    \item \textit{Is classified as OTC.}
+    \item \textit{Includes a date within the 2023-2025 range.}
+    \item \textit{Does not strictly contraindicate use during pregnancy.}
+  \end{itemize}
+\end{quote}
+
+\section{Hybrid Search Implementation}
+\label{appendix:hybrid-code}
+
+The core Reciprocal Rank Fusion (RRF) logic implemented in the backend API to combine PubMedBERT vectors and BM25 scores:
+
+\begin{minted}[fontsize=\scriptsize]{python}
+# RRF Logic: score = alpha * (1 / (k + rank)) + (1-alpha) * (1 / (k + rank))
+def apply_rrf(docs, rank_weight):
+    for rank, doc in enumerate(docs, 1):
+        doc_id = str(doc.get('drug_id'))
+        if not doc_id: continue
+        
+        # Calculate RRF component
+        rr = 1 / (RRF_K + rank)
+        score_contrib = rank_weight * rr
+        
+        fused_scores[doc_id] = fused_scores.get(doc_id, 0) + score_contrib
+
+# Apply Vector Ranks (Alpha = 0.5)
+apply_rrf(vector_docs, ALPHA)
+
+# Apply BM25 Ranks (1 - Alpha = 0.5)
+apply_rrf(bm25_docs, (1 - ALPHA))
+\end{minted}
