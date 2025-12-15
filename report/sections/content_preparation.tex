@@ -1,3 +1,5 @@
+
+
 \section{Introduction}
 Drug labeling data represents one of the most information-rich and complex resources in the pharmaceutical field~\cite{fang2016druglabel,nature_fdalabel}. Each label contains structured metadata such as product identifiers and manufacturing details, as well as long unstructured text describing therapeutic use, dosage, active ingredients, and safety warnings~\cite{nature_fdalabel,fda_fdalabel}. These records are critical for both healthcare professionals and automated systems that require reliable access to regulatory information~\cite{fang2016druglabel,fda_fdalabel}.
 
@@ -48,7 +50,7 @@ In contrast, \texttt{purpose} and \texttt{active\_ingredients} are concise and s
 
 Overall, this variability in verbosity and vocabulary density reflects the heterogeneous nature of the dataset. From an IR perspective, this is advantageous: longer sections enrich ranking through contextual relevance, while concise fields improve precision via targeted filtering. These insights guided the selection and weighting of indexable fields in later project stages.
 
-\begin{table}[h!]
+\begin{table}[htbp]
   \centering
   \caption{Summary of main textual fields relevant for retrieval.}
   \begin{tabular}{|l|c|c|c|c|}
@@ -178,3 +180,4 @@ In future work, these information needs will guide the design and evaluation of 
 
 
 % (End of Part 1)
+

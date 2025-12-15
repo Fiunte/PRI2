@@ -1,4 +1,5 @@
 myenv
+.DS_Store
 entrega3/frontend/.next
 entrega3/backend/__pycache__
 entrega3/hf_cache

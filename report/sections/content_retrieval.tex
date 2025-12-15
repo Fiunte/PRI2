@@ -114,7 +114,7 @@ Our methodology follows the standard Information Retrieval (IR) evaluation parad
 \subsubsection{Information Need}
 We define the specific need used for evaluation in Table~\ref{tab:infoneed}.
 
-\begin{table}[h!]
+\begin{table}[htbp]
     \centering
     \caption{Information Need and Search Parameters}
     \label{tab:infoneed}
@@ -150,7 +150,7 @@ We executed both queries against our Solr instance and used the \texttt{pytrec\_
 \subsubsection{Comparative Metrics}
 Table~\ref{tab:q1results} shows the performance of both systems.
 
-\begin{table}[h!]
+\begin{table}[htbp]
     \centering
     \caption{Comparative Metrics for Query Q1}
     \label{tab:q1results}
@@ -169,7 +169,7 @@ The results indicate a massive disparity in performance. The Advanced setup (Set
 \subsubsection{Precision-Recall Curve}
 To visualize the performance trade-off, we generated the Interpolated Precision-Recall curve.
 
-\begin{figure}[h!]
+\begin{figure}[htbp]
     \centering
     \includegraphics[width=\columnwidth]{pr_curve.png}
     \Description{Interpolated Precision-Recall Curve showing the Advanced Setup (blue line) significantly outperforming the Baseline Setup (orange line). The Advanced line stays high across recall levels, while Baseline drops quickly.}
@@ -199,7 +199,3 @@ Setup 2 succeeded because it effectively combined \textbf{hard constraints} with
 
 \paragraph{Limitations}
 Despite the strong performance, the current setup relies on exact metadata coverage. Drugs with missing `route` or `effective\_time` fields would be excluded regardless of their text content. Additionally, the boolean text match for "safe for pregnancy" is rigid; a semantic search approach using embeddings (planned for future work) would robustly handle variations like "safe for expectant mothers" that the current keyword-based system might miss.
-
-
-\clearpage
-% (End of Content)
