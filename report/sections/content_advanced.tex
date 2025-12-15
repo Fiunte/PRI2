@@ -52,7 +52,7 @@ The following metrics are computed for all experiments:
     \item \textbf{11-Point Interpolated Precision-Recall Curve}: Standard information retrieval evaluation showing precision at 11 recall levels (0.0, 0.1, ..., 1.0).
 \end{itemize}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
     \centering
     \includegraphics[width=0.4\linewidth]{pipeline.png}
     \Description{Vertical flowchart describing the general pipeline for both phases, showing query generation, judgment system, and metrics.}
@@ -128,7 +128,7 @@ The evaluation pipeline, implemented in Python, follows these steps:
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=1.0\linewidth]{precision_recall_curve_11pt_avg_only.png}
+    \includegraphics[width=0.85\linewidth]{precision_recall_curve_11pt_avg_only.png}
     \Description{11-point interpolated precision-recall curve comparing multiple dense vector models. PubMedBERT consistently achieves higher precision across all recall levels.}
     \caption{Precision–Recall curve (11-point averaged)}
     \label{fig:pr_curve_11pt_dense}
@@ -210,7 +210,7 @@ Table~\ref{tab:hybrid-alpha-results} demonstrates the substantial performance ga
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=1.0\linewidth]{precision_recall_curve_hybrid_alpha_compare.png}
+    \includegraphics[width=0.85\linewidth]{precision_recall_curve_hybrid_alpha_compare.png}
     \Description{Precision-recall curve comparing different alpha values for hybrid search. An alpha of 0.50 performs best across most recall levels.}
     \caption{Precision–Recall curve (11-point averaged)}
     \label{fig:pr_curve_11pt_hybrid}
@@ -234,7 +234,7 @@ Following the identification of the optimal hybrid search configuration (PubMedB
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=1.0\linewidth]{frontend1.png}
+    \includegraphics[width=0.85\linewidth]{frontend1.png}
     \Description{Screenshot of the search interface in its idle state, showing a clean search bar and navigation elements.}
     \caption{Idle Interface}
     \label{fig:frontend_idle}
@@ -285,7 +285,7 @@ This multi-layered approach ensures that user searches are both intuitive and pr
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=1\linewidth]{frontend5.png}
+    \includegraphics[width=0.85\linewidth]{frontend5.png}
     \Description{Screenshot showing query results where 'oral nsaid otc' is automatically converted into structured filters for route, category, and product type.}
     \caption{Example query results showcasing Query Rewriting and Smart Filtering (typing "oral nsaid otc" is rewritten to the following fq solr filters)}
     \label{fig:frontend_query_rewrite}
@@ -307,7 +307,7 @@ Medical databases often contain numerous entries for the same drug active ingred
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=1\linewidth]{frontend3.png}
+    \includegraphics[width=0.85\linewidth]{frontend3.png}
     \Description{Screenshot of search results grouped by cluster, showing multiple variants of a drug under a single ingredient heading.}
     \caption{Example of search results inside a cluster}
     \label{fig:frontend_cluster}
@@ -328,7 +328,7 @@ To explain \textit{why} a specific result was retrieved—especially for vector-
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=1\linewidth]{frontend2.png}
+    \includegraphics[width=0.85\linewidth]{frontend2.png}
     \Description{Screenshot showing search results with semantic snippets highlighted, explaining why the result matched the query.}
     \caption{Example of several snippet generations}
     \label{fig:frontend_snippet}
